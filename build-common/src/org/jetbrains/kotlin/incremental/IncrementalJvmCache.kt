@@ -184,7 +184,7 @@ open class IncrementalJvmCache(
         sourceToClassesMap.add(source, jvmClassName)
         val (proto, nameResolver) = serializedJavaClass.toProtoData()
         addToClassStorage(proto, nameResolver, source)
-
+//        collector.addJavaProto(ClassProtoData(proto, nameResolver))
         dirtyOutputClassesMap.notDirty(jvmClassName)
     }
 
@@ -307,7 +307,7 @@ open class IncrementalJvmCache(
             storage[key] = newData
 
             val packageFqName = kotlinClass.className.packageFqName
-            changesCollector.collectProtoChanges(oldData?.toProtoData(packageFqName), newData.toProtoData(packageFqName))
+            changesCollector.collectProtoChanges(oldData?.toProtoData(packageFqName), newData.toProtoData(packageFqName), packageProtoKey = key)
         }
 
         operator fun contains(className: JvmClassName): Boolean =
