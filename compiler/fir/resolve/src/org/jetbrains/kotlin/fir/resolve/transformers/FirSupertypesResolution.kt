@@ -16,8 +16,10 @@ import org.jetbrains.kotlin.fir.expressions.FirStatement
 import org.jetbrains.kotlin.fir.extensions.extensionService
 import org.jetbrains.kotlin.fir.extensions.predicateBasedProvider
 import org.jetbrains.kotlin.fir.extensions.supertypeGenerators
+import org.jetbrains.kotlin.fir.firLookupTracker
 import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.resolve.*
+import org.jetbrains.kotlin.fir.resolve.dfa.cfg.isLocalClassOrAnonymousObject
 import org.jetbrains.kotlin.fir.resolve.diagnostics.ConeTypeParameterSupertype
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.LocalClassesNavigationInfo
 import org.jetbrains.kotlin.fir.scopes.FirCompositeScope
@@ -284,6 +286,14 @@ private class FirSupertypeResolverVisitor(
         supertypeRefs: List<FirTypeRef>
     ): List<FirTypeRef> {
         return resolveSpecificClassLikeSupertypes(classLikeDeclaration) { transformer, scope ->
+            if (!classLikeDeclaration.isLocalClassOrAnonymousObject()) {
+                session.firLookupTracker?.let {
+                    val fileSource = session.firProvider.getFirClassifierContainerFile(classLikeDeclaration.symbol).source
+                    for (supertypeRef in supertypeRefs) {
+                        it.recordLookup(supertypeRef, fileSource, scope.scopeLookupNames)
+                    }
+                }
+            }
             /*
               This list is backed by mutable list and during iterating on it we can resolve supertypes of that class via IDE light classes
               as IJ Java resolve may resolve a lot of stuff by light classes

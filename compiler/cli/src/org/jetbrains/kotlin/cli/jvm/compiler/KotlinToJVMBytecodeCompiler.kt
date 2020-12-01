@@ -58,6 +58,7 @@ import org.jetbrains.kotlin.fir.backend.jvm.FirJvmBackendClassResolver
 import org.jetbrains.kotlin.fir.backend.jvm.FirJvmBackendExtension
 import org.jetbrains.kotlin.fir.checkers.registerExtendedCommonCheckers
 import org.jetbrains.kotlin.fir.createSessionWithDependencies
+import org.jetbrains.kotlin.fir.firLookupTracker
 import org.jetbrains.kotlin.ir.backend.jvm.jvmResolveLibraries
 import org.jetbrains.kotlin.javac.JavacWrapper
 import org.jetbrains.kotlin.load.kotlin.ModuleVisibilityManager
@@ -333,6 +334,7 @@ object KotlinToJVMBytecodeCompiler {
                 languageVersionSettings,
                 sourceScope,
                 librariesScope,
+                lookupTracker = environment.configuration.get(CommonConfigurationKeys.LOOKUP_TRACKER),
                 environment::createPackagePartProvider
             ) {
                 if (extendedAnalysisMode) {
@@ -356,6 +358,8 @@ object KotlinToJVMBytecodeCompiler {
             if (syntaxErrors || firDiagnostics.any { it.severity == Severity.ERROR }) {
                 return false
             }
+
+            session.firLookupTracker?.flushLookups()
 
             performanceManager?.notifyGenerationStarted()
 
