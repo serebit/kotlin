@@ -40,6 +40,7 @@ val kotlinGradlePluginAndItsRequired = arrayOf(
     ":kotlin-gradle-plugin-api",
     ":kotlin-gradle-plugin",
     ":kotlin-gradle-plugin-model",
+    ":kotlin-tooling-metadata",
     ":kotlin-reflect",
     ":kotlin-annotation-processing-gradle",
     ":kotlin-test",
