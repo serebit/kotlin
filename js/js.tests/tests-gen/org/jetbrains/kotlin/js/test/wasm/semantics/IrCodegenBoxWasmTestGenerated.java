@@ -6131,6 +6131,16 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
             runTest("compiler/testData/codegen/box/inference/capturedTypesSubstitutionIntoAbbreviation.kt");
         }
 
+        @TestMetadata("dontUpdateFunctionTypeTwice.kt")
+        public void testDontUpdateFunctionTypeTwice() throws Exception {
+            runTest("compiler/testData/codegen/box/inference/dontUpdateFunctionTypeTwice.kt");
+        }
+
+        @TestMetadata("dontUpdateFunctionTypeTwiceForDependentContext.kt")
+        public void testDontUpdateFunctionTypeTwiceForDependentContext() throws Exception {
+            runTest("compiler/testData/codegen/box/inference/dontUpdateFunctionTypeTwiceForDependentContext.kt");
+        }
+
         @TestMetadata("earlyReturnInsideCrossinlineLambda.kt")
         public void testEarlyReturnInsideCrossinlineLambda() throws Exception {
             runTest("compiler/testData/codegen/box/inference/earlyReturnInsideCrossinlineLambda.kt");

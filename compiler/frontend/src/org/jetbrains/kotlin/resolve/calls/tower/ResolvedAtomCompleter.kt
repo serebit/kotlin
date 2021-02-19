@@ -294,7 +294,9 @@ class ResolvedAtomCompleter(
         val functionDescriptor = trace.bindingContext.get(BindingContext.FUNCTION, ktFunction) as? FunctionDescriptorImpl
             ?: throw AssertionError("No function descriptor for resolved lambda argument")
 
-        functionDescriptor.setReturnType(returnType)
+        if (this.topLevelCallContext.contextDependency == ContextDependency.DEPENDENT) {
+            functionDescriptor.setReturnType(returnType)
+        }
 
         val extensionReceiverParameter = functionDescriptor.extensionReceiverParameter
 
