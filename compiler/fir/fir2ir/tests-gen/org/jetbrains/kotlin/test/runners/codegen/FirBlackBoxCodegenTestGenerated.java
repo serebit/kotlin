@@ -16547,6 +16547,18 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
         }
 
         @Test
+        @TestMetadata("dontUpdateFunctionTypeTwice.kt")
+        public void testDontUpdateFunctionTypeTwice() throws Exception {
+            runTest("compiler/testData/codegen/box/inference/dontUpdateFunctionTypeTwice.kt");
+        }
+
+        @Test
+        @TestMetadata("dontUpdateFunctionTypeTwice2.kt")
+        public void testDontUpdateFunctionTypeTwice2() throws Exception {
+            runTest("compiler/testData/codegen/box/inference/dontUpdateFunctionTypeTwice2.kt");
+        }
+
+        @Test
         @TestMetadata("earlyReturnInsideCrossinlineLambda.kt")
         public void testEarlyReturnInsideCrossinlineLambda() throws Exception {
             runTest("compiler/testData/codegen/box/inference/earlyReturnInsideCrossinlineLambda.kt");

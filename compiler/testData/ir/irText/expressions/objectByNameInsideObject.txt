@@ -36,9 +36,9 @@ FILE fqName:<root> fileName:/objectByNameInsideObject.kt
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> (f1: kotlin.Function0<kotlin.Any>) [primary] declared in <root>.Base'
           f1: FUN_EXPR type=kotlin.Function0<kotlin.Any> origin=LAMBDA
-            FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> () returnType:kotlin.Any
+            FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> () returnType:<root>.Thing
               BLOCK_BODY
-                RETURN type=kotlin.Nothing from='local final fun <anonymous> (): kotlin.Any declared in <root>.Thing.<init>'
+                RETURN type=kotlin.Nothing from='local final fun <anonymous> (): <root>.Thing declared in <root>.Thing.<init>'
                   GET_OBJECT 'CLASS OBJECT name:Thing modality:FINAL visibility:public superTypes:[<root>.Base]' type=<root>.Thing
         INSTANCE_INITIALIZER_CALL classDescriptor='CLASS OBJECT name:Thing modality:FINAL visibility:public superTypes:[<root>.Base]'
     FUN name:test1 visibility:public modality:FINAL <> ($this:<root>.Thing) returnType:<root>.Thing

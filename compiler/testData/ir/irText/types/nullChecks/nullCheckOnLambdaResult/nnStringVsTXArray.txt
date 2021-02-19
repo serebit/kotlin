@@ -15,8 +15,7 @@ FILE fqName:<root> fileName:/nnStringVsTXArray.kt
           <T>: java.io.Serializable
           x: GET_VAR 'xs: kotlin.Array<kotlin.String> declared in <root>.testWithNullCheck' type=kotlin.Array<kotlin.String> origin=null
           fn: FUN_EXPR type=kotlin.Function0<java.io.Serializable> origin=LAMBDA
-            FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> () returnType:java.io.Serializable
+            FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> () returnType:@[EnhancedNullability] kotlin.String
               BLOCK_BODY
-                RETURN type=kotlin.Nothing from='local final fun <anonymous> (): java.io.Serializable declared in <root>.testWithNullCheck'
-                  TYPE_OP type=kotlin.String origin=IMPLICIT_NOTNULL typeOperand=kotlin.String
-                    CALL 'public open fun notNullString (): @[EnhancedNullability] kotlin.String declared in <root>.J' type=@[EnhancedNullability] kotlin.String origin=null
+                RETURN type=kotlin.Nothing from='local final fun <anonymous> (): @[EnhancedNullability] kotlin.String declared in <root>.testWithNullCheck'
+                  CALL 'public open fun notNullString (): @[EnhancedNullability] kotlin.String declared in <root>.J' type=@[EnhancedNullability] kotlin.String origin=null
