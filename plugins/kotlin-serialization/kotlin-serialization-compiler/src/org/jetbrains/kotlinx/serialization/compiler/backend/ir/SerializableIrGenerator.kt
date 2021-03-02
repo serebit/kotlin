@@ -293,8 +293,11 @@ class SerializableIrGenerator(
             val localSerialDesc = writeSelfF.valueParameters[2]
             val serializableProperties = properties.serializableProperties
             val kOutputClass = serializableDescriptor.getClassFromSerializationPackage(SerialEntityNames.STRUCTURE_ENCODER_CLASS)
-            val fieldInitializer: (SerializableProperty) -> IrExpression? =
-                buildInitializersRemapping(irClass).run { { invoke(it.irField) } }
+
+            val propertyByParamReplacer: (ValueParameterDescriptor) -> IrExpression? =
+                createPropertyByParamReplacer(irClass, serializableProperties, objectToSerialize, bindingContext)
+
+            val initializerAdapter: (IrExpressionBody) -> IrExpression = createInitializerAdapter(irClass, propertyByParamReplacer)
 
             // Compute offset of properties in superclass
             var ignoreIndexTo = -1
@@ -353,7 +356,7 @@ class SerializableIrGenerator(
                     // if (obj.prop != DEFAULT_VALUE || output.shouldEncodeElementDefault(this.descriptor, i))
                     //    output.encodeIntElement(this.descriptor, i, obj.prop)
                     val shouldEncodeFunc = kOutputClass.referenceMethod(CallingConventions.shouldEncodeDefault)
-                    val partA = irNotEquals(property.irGet(), fieldInitializer(property)!!)
+                    val partA = irNotEquals(property.irGet(), initializerAdapter(property.irField.initializer!!))
                     val partB = irInvoke(irGet(localOutput), shouldEncodeFunc, irGet(localSerialDesc), irInt(index))
                     // Ir infrastructure does not have dedicated symbol for ||, so
                     //  `a || b == if (a) true else b`, see org.jetbrains.kotlin.ir.builders.PrimitivesKt.oror

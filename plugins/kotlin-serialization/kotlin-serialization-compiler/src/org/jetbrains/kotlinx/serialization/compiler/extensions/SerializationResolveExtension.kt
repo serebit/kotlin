@@ -40,7 +40,10 @@ open class SerializationResolveExtension @JvmOverloads constructor(val metadataP
         thisDescriptor.isSerializableObject || thisDescriptor.isCompanionObject && getSerializableClassDescriptorByCompanion(thisDescriptor) != null ->
             listOf(SerialEntityNames.SERIALIZER_PROVIDER_NAME)
         thisDescriptor.isInternalSerializable && thisDescriptor.platform?.isJvm() == true && !hasCustomizedSerializeMethod(thisDescriptor) -> {
-            // add write$Self, but only if .serialize was not customized in companion
+            // add write$Self, but only if .serialize was not customized in companion.
+            // It works not only on JVM, but I see no reason to enable it on other platforms —
+            // private fields there have no access control, and additional function
+            // only increases compiled code size.
             listOf(SerialEntityNames.WRITE_SELF_NAME)
         }
         else -> emptyList()
