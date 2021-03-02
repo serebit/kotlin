@@ -6,6 +6,7 @@
 package org.jetbrains.kotlinx.serialization.compiler.backend.ir
 
 import org.jetbrains.kotlin.backend.common.deepCopyWithVariables
+import org.jetbrains.kotlin.backend.common.lower.irIfThen
 import org.jetbrains.kotlin.backend.common.lower.irThrow
 import org.jetbrains.kotlin.codegen.CompilationException
 import org.jetbrains.kotlin.descriptors.*
@@ -25,8 +26,10 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.util.OperatorNameConventions
 import org.jetbrains.kotlin.utils.getOrPutNullable
+import org.jetbrains.kotlinx.serialization.compiler.backend.common.SerialTypeInfo
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.SerializableCodegen
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.isStaticSerializable
+import org.jetbrains.kotlinx.serialization.compiler.backend.common.getSerialTypeInfo
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.serialName
 import org.jetbrains.kotlinx.serialization.compiler.diagnostic.serializableAnnotationIsUseless
 import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationPluginContext
@@ -284,7 +287,104 @@ class SerializableIrGenerator(
     }
 
     override fun generateWriteSelfMethod(methodDescriptor: FunctionDescriptor) {
-        // no-op
+        irClass.contributeFunction(methodDescriptor, ignoreWhenMissing = true) { writeSelfF ->
+            val objectToSerialize = writeSelfF.valueParameters[0]
+            val localOutput = writeSelfF.valueParameters[1]
+            val localSerialDesc = writeSelfF.valueParameters[2]
+            val serializableProperties = properties.serializableProperties
+            val kOutputClass = serializableDescriptor.getClassFromSerializationPackage(SerialEntityNames.STRUCTURE_ENCODER_CLASS)
+            val fieldInitializer: (SerializableProperty) -> IrExpression? =
+                buildInitializersRemapping(irClass).run { { invoke(it.irField) } }
+
+            // Compute offset of properties in superclass
+            var ignoreIndexTo = -1
+            val superClass = irClass.getSuperClassOrAny()
+            if (superClass.descriptor.isInternalSerializable) {
+                ignoreIndexTo = bindingContext.serializablePropertiesFor(superClass.descriptor).size
+
+                // call super.writeSelf
+                val superWriteSelfF = superClass.findWriteSelfMethod()
+                if (superWriteSelfF != null) {
+                    val args = mutableListOf<IrExpression>(irGet(objectToSerialize), irGet(localOutput), irGet(localSerialDesc))
+                    // todo: generic type args
+                    +irInvoke(null, superWriteSelfF.symbol, emptyList(), args)
+                }
+            }
+            fun SerializableProperty.irGet(): IrExpression {
+                val ownerType = objectToSerialize.symbol.owner.type
+                return this@contributeFunction.getProperty(
+                    this@contributeFunction.irGet(
+                        type = ownerType,
+                        variable = objectToSerialize.symbol
+                    ), getIrPropertyFrom(irClass)
+                )
+            }
+
+            // todo: unify this copy-paste and formEncodeDecodePropertyCallInWriteSelf with existing functions in serializerIrGenerator
+            for ((index, property) in serializableProperties.filter { !it.transient }.withIndex()) {
+                if (index < ignoreIndexTo) continue
+                // output.writeXxxElementValue(classDesc, index, value)
+                val elementCall = formEncodeDecodePropertyCallInWriteSelf(
+                    irGet(localOutput), writeSelfF, property, { innerSerial, sti ->
+                        val f =
+                            kOutputClass.referenceMethod("${CallingConventions.encode}${sti.elementMethodPrefix}Serializable${CallingConventions.elementPostfix}")
+                        f to listOf(
+                            irGet(localSerialDesc),
+                            irInt(index),
+                            innerSerial,
+                            property.irGet()
+                        )
+                    }, {
+                        val f =
+                            kOutputClass.referenceMethod("${CallingConventions.encode}${it.elementMethodPrefix}${CallingConventions.elementPostfix}")
+                        val args: MutableList<IrExpression> =
+                            mutableListOf(irGet(localSerialDesc), irInt(index))
+                        if (it.elementMethodPrefix != "Unit") args.add(property.irGet())
+                        f to args
+                    }
+                )
+
+                // check for call to .shouldEncodeElementDefault
+                if (!property.optional) {
+                    // emit call right away
+                    +elementCall
+                } else {
+                    // emit check:
+                    // if (obj.prop != DEFAULT_VALUE || output.shouldEncodeElementDefault(this.descriptor, i))
+                    //    output.encodeIntElement(this.descriptor, i, obj.prop)
+                    val shouldEncodeFunc = kOutputClass.referenceMethod(CallingConventions.shouldEncodeDefault)
+                    val partA = irNotEquals(property.irGet(), fieldInitializer(property)!!)
+                    val partB = irInvoke(irGet(localOutput), shouldEncodeFunc, irGet(localSerialDesc), irInt(index))
+                    // Ir infrastructure does not have dedicated symbol for ||, so
+                    //  `a || b == if (a) true else b`, see org.jetbrains.kotlin.ir.builders.PrimitivesKt.oror
+                    val condition = irIfThenElse(compilerContext.irBuiltIns.booleanType, partA, irTrue(), partB)
+                    +irIfThen(condition, elementCall)
+                }
+            }
+        }
+    }
+
+    protected inline fun IrBlockBodyBuilder.formEncodeDecodePropertyCallInWriteSelf(
+        encoder: IrExpression,
+        writeFunc: IrFunction,
+        property: SerializableProperty,
+        whenHaveSerializer: (serializer: IrExpression, sti: SerialTypeInfo) -> FunctionWithArgs,
+        whenDoNot: (sti: SerialTypeInfo) -> FunctionWithArgs,
+        returnTypeHint: IrType? = null
+    ): IrExpression {
+        val sti = getSerialTypeInfo(property)
+        val innerSerial = serializerInstance(
+            this@SerializableIrGenerator,
+            sti.serializer,
+            property.module,
+            property.type,
+            property.genericIndex
+        ) { it, _ ->
+            irGet(writeFunc.valueParameters[3 + it])
+        }
+        val (functionToCall, args: List<IrExpression>) = if (innerSerial != null) whenHaveSerializer(innerSerial, sti) else whenDoNot(sti)
+        val typeArgs = if (functionToCall.descriptor.typeParameters.isNotEmpty()) listOf(property.type.toIrType()) else listOf()
+        return irInvoke(encoder, functionToCall, typeArguments = typeArgs, valueArguments = args, returnTypeHint = returnTypeHint)
     }
 
     companion object {
@@ -298,8 +398,7 @@ class SerializableIrGenerator(
             if (serializableClass.isInternalSerializable) {
                 SerializableIrGenerator(irClass, context, bindingContext).generate()
                 irClass.patchDeclarationParents(irClass.parent)
-            }
-            else if (serializableClass.serializableAnnotationIsUseless) {
+            } else if (serializableClass.serializableAnnotationIsUseless) {
                 throw CompilationException(
                     "@Serializable annotation on $serializableClass would be ignored because it is impossible to serialize it automatically. " +
                             "Provide serializer manually via e.g. companion object", null, serializableClass.findPsi()

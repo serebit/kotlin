@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.util.OperatorNameConventions
+import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.SerialTypeInfo
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.SerializerCodegen
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.getSerialTypeInfo
@@ -196,13 +197,13 @@ open class SerializerIrGenerator(
             val thisAsReceiverParameter = irClass.thisReceiver!!
             ctor.valueParameters.forEachIndexed { index, param ->
                 val localSerial = localSerializersFieldsDescriptors[index].second.backingField!!
-                +irSetField(generateReceiverExpressionForFieldAccess(
-                    thisAsReceiverParameter.symbol,
-                    localSerializersFieldsDescriptors[index].first
-                ), localSerial, irGet(param))
+                +irSetField(
+                    generateReceiverExpressionForFieldAccess(
+                        thisAsReceiverParameter.symbol,
+                        localSerializersFieldsDescriptors[index].first
+                    ), localSerial, irGet(param)
+                )
             }
-
-
         }
 
     override fun generateChildSerializersGetter(function: FunctionDescriptor) = irClass.contributeFunction(function) { irFun ->
@@ -276,49 +277,67 @@ open class SerializerIrGenerator(
             -1
         }
 
-        val propertyByParamReplacer: (ValueParameterDescriptor) -> IrExpression? =
-            createPropertyByParamReplacer(serializableIrClass, serializableProperties, objectToSerialize, bindingContext)
+        val writeSelfF = serializableIrClass.findWriteSelfMethod()
 
-        val thisSymbol = serializableIrClass.thisReceiver!!.symbol
-        val initializerAdapter: (IrExpressionBody) -> IrExpression =
-            createInitializerAdapter(serializableIrClass, propertyByParamReplacer, thisSymbol to { irGet(objectToSerialize) })
-
-        //  internal serialization via virtual calls?
-        for ((index, property) in serializableProperties.withIndex()) {
-            // output.writeXxxElementValue(classDesc, index, value)
-            val elementCall = formEncodeDecodePropertyCall(irGet(localOutput), saveFunc.dispatchReceiverParameter!!, property, {innerSerial, sti ->
-                val f =
-                    kOutputClass.referenceFunctionSymbol("${CallingConventions.encode}${sti.elementMethodPrefix}Serializable${CallingConventions.elementPostfix}")
-                f to listOf(
-                    irGet(localSerialDesc),
-                    irInt(index),
-                    innerSerial,
-                    property.irGet()
+        if (writeSelfF != null) {
+            // extract Tx from KSerializer<Tx> list
+            val typeArgs =
+                localSerializersFieldsDescriptors.map { (_, ir) -> ir.backingField!!.type.cast<IrSimpleType>().arguments.single().typeOrNull }
+            val args = mutableListOf<IrExpression>(irGet(objectToSerialize), irGet(localOutput), irGet(localSerialDesc))
+            args.addAll(localSerializersFieldsDescriptors.map { (_, ir) ->
+                irGetField(
+                    irGet(saveFunc.dispatchReceiverParameter!!),
+                    ir.backingField!!
                 )
-            }, {
-                val f =
-                    kOutputClass.referenceFunctionSymbol("${CallingConventions.encode}${it.elementMethodPrefix}${CallingConventions.elementPostfix}")
-                val args: MutableList<IrExpression> = mutableListOf(irGet(localSerialDesc), irInt(index))
-                if (it.elementMethodPrefix != "Unit") args.add(property.irGet())
-                f to args
             })
+            +irInvoke(null, writeSelfF.symbol, typeArgs, args)
+        } else {
+            // no write$Self, old behaviour
 
-            // check for call to .shouldEncodeElementDefault
-            if (!property.optional || index < ignoreIndexTo) {
-                // emit call right away
-                +elementCall
-            } else {
-                // emit check:
-                // if ( if (output.shouldEncodeElementDefault(this.descriptor, i)) true else {obj.prop != DEFAULT_VALUE} ) {
-                //    output.encodeIntElement(this.descriptor, i, obj.prop)
-                // block {obj.prop != DEFAULT_VALUE} may contain several statements
-                val shouldEncodeFunc = kOutputClass.referenceFunctionSymbol(CallingConventions.shouldEncodeDefault)
-                val partA = irInvoke(irGet(localOutput), shouldEncodeFunc, irGet(localSerialDesc), irInt(index))
-                val partB = irNotEquals(property.irGet(), initializerAdapter(property.irField.initializer!!))
-                // Ir infrastructure does not have dedicated symbol for ||, so
-                //  `a || b == if (a) true else b`, see org.jetbrains.kotlin.ir.builders.PrimitivesKt.oror
-                val condition = irIfThenElse(compilerContext.irBuiltIns.booleanType, partA, irTrue(), partB)
-                +irIfThen(condition, elementCall)
+            val propertyByParamReplacer: (ValueParameterDescriptor) -> IrExpression? =
+                createPropertyByParamReplacer(serializableIrClass, serializableProperties, objectToSerialize, bindingContext)
+
+            val thisSymbol = serializableIrClass.thisReceiver!!.symbol
+            val initializerAdapter: (IrExpressionBody) -> IrExpression =
+                createInitializerAdapter(serializableIrClass, propertyByParamReplacer, thisSymbol to { irGet(objectToSerialize) })
+
+            //  internal serialization via virtual calls?
+            for ((index, property) in serializableProperties.withIndex()) {
+                // output.writeXxxElementValue(classDesc, index, value)
+                val elementCall = formEncodeDecodePropertyCall(
+                    irGet(localOutput), saveFunc.dispatchReceiverParameter!!, property, { innerSerial, sti ->
+                        val f =
+                            kOutputClass.referenceFunctionSymbol("${CallingConventions.encode}${sti.elementMethodPrefix}Serializable${CallingConventions.elementPostfix}")
+                        f to listOf(
+                            irGet(localSerialDesc),
+                            irInt(index),
+                            innerSerial,
+                            property.irGet()
+                        )
+                    }, {
+                        val f =
+                            kOutputClass.referenceFunctionSymbol("${CallingConventions.encode}${it.elementMethodPrefix}${CallingConventions.elementPostfix}")
+                        val args: MutableList<IrExpression> = mutableListOf(irGet(localSerialDesc), irInt(index))
+                        if (it.elementMethodPrefix != "Unit") args.add(property.irGet())
+                        f to args
+                    })
+
+                // check for call to .shouldEncodeElementDefault
+                if (!property.optional || index < ignoreIndexTo) {
+                    // emit call right away
+                    +elementCall
+                } else {
+                    // emit check:
+                    // if (if (output.shouldEncodeElementDefault(this.descriptor, i)) true else {obj.prop != DEFAULT_VALUE} ) {
+                    //    output.encodeIntElement(this.descriptor, i, obj.prop)// block {obj.prop != DEFAULT_VALUE} may contain several statements
+                    val shouldEncodeFunc = kOutputClass.referenceFunctionSymbol(CallingConventions.shouldEncodeDefault)
+                    val partA = irInvoke(irGet(localOutput), shouldEncodeFunc, irGet(localSerialDesc), irInt(index))
+                    val partB = irNotEquals(property.irGet(), initializerAdapter(property.irField.initializer!!))
+                    // Ir infrastructure does not have dedicated symbol for ||, so
+                    //  `a || b == if (a) true else b`, see org.jetbrains.kotlin.ir.builders.PrimitivesKt.oror
+                    val condition = irIfThenElse(compilerContext.irBuiltIns.booleanType, partA, irTrue(), partB)
+                    +irIfThen(condition, elementCall)
+                }
             }
         }
 

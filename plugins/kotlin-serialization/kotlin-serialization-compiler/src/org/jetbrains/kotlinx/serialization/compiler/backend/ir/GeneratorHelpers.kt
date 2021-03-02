@@ -59,9 +59,15 @@ interface IrBuilderExtension {
         return throwMissedFieldExceptionFunc != null && throwMissedFieldExceptionArrayFunc != null
     }
 
-    fun IrClass.contributeFunction(descriptor: FunctionDescriptor, bodyGen: IrBlockBodyBuilder.(IrFunction) -> Unit) {
-        val f: IrSimpleFunction = searchForDeclaration(descriptor) ?: compilerContext.symbolTable.referenceSimpleFunction(descriptor).owner
-        // TODO: default parameters
+    fun ClassDescriptor.referenceMethod(methodName: String, predicate: (IrSimpleFunction) -> Boolean = { true }): IrFunctionSymbol {
+        val irClass = compilerContext.referenceClass(fqNameSafe)?.owner ?: error("Couldn't load class $this")
+        val simpleFunctions = irClass.declarations.filterIsInstance<IrSimpleFunction>()
+        return simpleFunctions.filter { it.name.asString() == methodName }.single { predicate(it) }.symbol
+    }
+
+    fun IrClass.contributeFunction(descriptor: FunctionDescriptor, ignoreWhenMissing: Boolean = false, bodyGen: IrBlockBodyBuilder.(IrFunction) -> Unit) {
+        val f: IrSimpleFunction = searchForDeclaration(descriptor)
+            ?: (if (ignoreWhenMissing) return else compilerContext.symbolTable.referenceSimpleFunction(descriptor).owner)
         f.body = DeclarationIrBuilder(compilerContext, f.symbol, this.startOffset, this.endOffset).irBlockBody(
             this.startOffset,
             this.endOffset
@@ -489,7 +495,7 @@ interface IrBuilderExtension {
                 )
             }.also { f ->
                 generateOverriddenFunctionSymbols(f, compilerContext.symbolTable)
-                f.createParameterDeclarations(receiver = null)
+                f.createParameterDeclarations(descriptor)
                 f.returnType = descriptor.returnType!!.toIrType()
                 f.correspondingPropertySymbol = fieldSymbol.owner.correspondingPropertySymbol
             }
@@ -572,7 +578,7 @@ interface IrBuilderExtension {
     }
 
     fun IrFunction.createParameterDeclarations(
-        receiver: IrValueParameter?,
+        descriptor: FunctionDescriptor,
         overwriteValueParameters: Boolean = false,
         copyTypeParameters: Boolean = true
     ) {
@@ -589,7 +595,7 @@ interface IrBuilderExtension {
 
         if (copyTypeParameters) {
             assert(typeParameters.isEmpty())
-            copyTypeParamsFromDescriptor()
+            copyTypeParamsFromDescriptor(descriptor)
         }
 
         dispatchReceiverParameter = descriptor.dispatchReceiverParameter?.let { irValueParameter(it) }
@@ -601,7 +607,7 @@ interface IrBuilderExtension {
         valueParameters = descriptor.valueParameters.map { irValueParameter(it) }
     }
 
-    fun IrFunction.copyTypeParamsFromDescriptor() {
+    fun IrFunction.copyTypeParamsFromDescriptor(descriptor: FunctionDescriptor) {
         val newTypeParameters = descriptor.typeParameters.map {
             factory.createTypeParameter(
                 startOffset, endOffset,
@@ -990,5 +996,15 @@ interface IrBuilderExtension {
 
         return superClasses.singleOrNull { it.kind == ClassKind.CLASS }
     }
+
+    fun IrClass.findWriteSelfMethod(): IrSimpleFunction? =
+        declarations.filter { it is IrSimpleFunction && it.name == SerialEntityNames.WRITE_SELF_NAME && !it.isFakeOverride }
+            .let {
+                when (it.size) {
+                    0 -> null
+                    1 -> it.single() as IrSimpleFunction
+                    else -> error("only one write\$Self function should exist")
+                }
+            }
 
 }
