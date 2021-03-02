@@ -14,6 +14,8 @@ import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 import org.gradle.workers.WorkerExecutor
 import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin.Companion.KAPT_WORKER_DEPENDENCIES_CONFIGURATION_NAME
+import org.jetbrains.kotlin.gradle.internal.kapt.classloaders.CachingClassLoadersProvider
+import org.jetbrains.kotlin.gradle.internal.kapt.classloaders.ClassLoadersProvider
 import org.jetbrains.kotlin.gradle.internal.kapt.incremental.KaptIncrementalChanges
 import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 import org.jetbrains.kotlin.gradle.tasks.CompilerPluginOptions
@@ -21,6 +23,7 @@ import org.jetbrains.kotlin.gradle.tasks.findKotlinStdlibClasspath
 import org.jetbrains.kotlin.gradle.tasks.findToolsJar
 import org.jetbrains.kotlin.gradle.utils.isGradleVersionAtLeast
 import org.jetbrains.kotlin.utils.PathUtil
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.Serializable
 import java.net.URL
@@ -37,6 +40,9 @@ abstract class KaptWithoutKotlincTask @Inject constructor(private val workerExec
 
     @get:Input
     var isVerbose: Boolean = false
+
+    @get:Input
+    var classLoadersCacheSize: Int = 0
 
     @get:Input
     var mapDiagnosticLocations: Boolean = false
@@ -109,7 +115,7 @@ abstract class KaptWithoutKotlincTask @Inject constructor(private val workerExec
             classesDir,
             stubsDir,
 
-            kaptClasspath.files.toList(),
+            kaptClasspath.files.sortedBy { it.path }.toList(),
             annotationProcessorFqNames,
 
             getAnnotationProcessorOptions(),
@@ -170,6 +176,7 @@ abstract class KaptWithoutKotlincTask @Inject constructor(private val workerExec
             it.workerOptions.set(optionsForWorker)
             it.toolsJarURLSpec.set(toolsJarURLSpec)
             it.kaptClasspath.setFrom(kaptClasspath)
+            it.classloadersCacheSize.set(classLoadersCacheSize)
         }
     }
 
@@ -184,6 +191,7 @@ abstract class KaptWithoutKotlincTask @Inject constructor(private val workerExec
         val workerOptions: Property<KaptOptionsForWorker>
         val toolsJarURLSpec: Property<String>
         val kaptClasspath: ConfigurableFileCollection
+        val classloadersCacheSize: Property<Int>
     }
 
     internal abstract class KaptExecutionWorkAction : WorkAction<KaptWorkParameters> {
@@ -201,15 +209,21 @@ abstract class KaptWithoutKotlincTask @Inject constructor(private val workerExec
 private class KaptExecution @Inject constructor(
     val optionsForWorker: KaptOptionsForWorker,
     val toolsJarURLSpec: String,
-    val kaptClasspath: List<File>
+    val kaptClasspath: List<File>,
+    val classloadersCacheSize: Int
 ) : Runnable {
     private companion object {
         private const val JAVAC_CONTEXT_CLASS = "com.sun.tools.javac.util.Context"
 
         private fun kaptClass(classLoader: ClassLoader) = Class.forName("org.jetbrains.kotlin.kapt3.base.Kapt", true, classLoader)
+
+        private var classLoadersProvider: ClassLoadersProvider? = null
+
         private var cachedClassLoaderWithToolsJar: ClassLoader? = null
         private var cachedKaptClassLoader: ClassLoader? = null
     }
+
+    private val logger = LoggerFactory.getLogger(KaptExecution::class.java)
 
     override fun run(): Unit = with(optionsForWorker) {
         val kaptClasspathUrls = kaptClasspath.map { it.toURI().toURL() }.toTypedArray()
@@ -224,6 +238,11 @@ private class KaptExecution @Inject constructor(
 
         val kaptClassLoader = cachedKaptClassLoader ?: URLClassLoader(kaptClasspathUrls, classLoaderWithToolsJar)
         cachedKaptClassLoader = kaptClassLoader
+
+        if (classLoadersProvider == null && classloadersCacheSize > 0) {
+            logger.info("Initializing KAPT classloaders cache with size = $classloadersCacheSize")
+            classLoadersProvider = CachingClassLoadersProvider(classloadersCacheSize, cachedClassLoaderWithToolsJar!!)
+        }
 
         val kaptMethod = kaptClass(kaptClassLoader).declaredMethods.single { it.name == "kapt" }
         kaptMethod.invoke(null, createKaptOptions(kaptClassLoader))
@@ -245,6 +264,9 @@ private class KaptExecution @Inject constructor(
 
         val detectMemoryLeaksMode = Class.forName("org.jetbrains.kotlin.base.kapt3.DetectMemoryLeaksMode", true, classLoader)
             .enumConstants.single { (it as Enum<*>).name == "NONE" }
+
+        //in case cache was enabled and then disabled
+        val processingClassLoader = if (classloadersCacheSize > 0) classLoadersProvider?.getForClassPath(processingClasspath) else null
 
         Class.forName("org.jetbrains.kotlin.base.kapt3.KaptOptions", true, classLoader).constructors.single().newInstance(
             projectBaseDir,
@@ -269,7 +291,9 @@ private class KaptExecution @Inject constructor(
 
             flags,
             mode,
-            detectMemoryLeaksMode
+            detectMemoryLeaksMode,
+
+            processingClassLoader
         )
     }
 

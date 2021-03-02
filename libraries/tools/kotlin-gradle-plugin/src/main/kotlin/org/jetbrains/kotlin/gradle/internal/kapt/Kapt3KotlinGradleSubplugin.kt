@@ -80,6 +80,7 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
         private val INCLUDE_COMPILE_CLASSPATH = "kapt.include.compile.classpath"
         private val INCREMENTAL_APT = "kapt.incremental.apt"
         private val KAPT_KEEP_KDOC_COMMENTS_IN_STUBS = "kapt.keep.kdoc.comments.in.stubs"
+        private val CLASSLOADERS_CACHE_SIZE = "kapt.classloaders.cache.size"
 
         const val KAPT_WORKER_DEPENDENCIES_CONFIGURATION_NAME = "kotlinKaptWorkerDependencies"
 
@@ -123,6 +124,8 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
         fun Project.isKaptKeepKdocCommentsInStubs(): Boolean {
             return !(hasProperty(KAPT_KEEP_KDOC_COMMENTS_IN_STUBS) && property(KAPT_KEEP_KDOC_COMMENTS_IN_STUBS) == "false")
         }
+
+        fun Project.classLoadersCacheSize(): Int = findProperty(CLASSLOADERS_CACHE_SIZE)?.toString()?.toInt() ?: 0
 
         fun findMainKaptConfiguration(project: Project) = project.findKaptConfiguration(SourceSet.MAIN_SOURCE_SET_NAME)
 
@@ -519,6 +522,7 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
                 it.mapDiagnosticLocations = kaptExtension.mapDiagnosticLocations
                 it.annotationProcessorFqNames = kaptExtension.processors.split(',').filter { it.isNotEmpty() }
                 it.javacOptions = dslJavacOptions.get()
+                it.classLoadersCacheSize = project.classLoadersCacheSize()
             }
 
             val subpluginOptions = getAPOptions()
