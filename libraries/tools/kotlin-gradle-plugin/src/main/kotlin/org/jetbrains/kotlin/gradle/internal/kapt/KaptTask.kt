@@ -47,6 +47,7 @@ abstract class KaptTask : ConventionTask(), TaskWithLocalState {
     abstract val kaptClasspath: ConfigurableFileCollection
 
     //part of kaptClasspath consisting from external artifacts only
+    //basically kaptClasspath = kaptExternalClasspath + artifacts built locally
     @get:Classpath
     @get:InputFiles
     abstract val kaptExternalClasspath: ConfigurableFileCollection
