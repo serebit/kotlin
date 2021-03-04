@@ -15,6 +15,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.FileCollection
@@ -81,6 +82,7 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
         private val INCREMENTAL_APT = "kapt.incremental.apt"
         private val KAPT_KEEP_KDOC_COMMENTS_IN_STUBS = "kapt.keep.kdoc.comments.in.stubs"
         private val CLASSLOADERS_CACHE_SIZE = "kapt.classloaders.cache.size"
+        private val CLASSLOADERS_CACHE_DISABLE_FOR_PROCESSORS = "kapt.classloaders.cache.disableForProcessors"
 
         const val KAPT_WORKER_DEPENDENCIES_CONFIGURATION_NAME = "kotlinKaptWorkerDependencies"
 
@@ -126,6 +128,15 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
         }
 
         fun Project.classLoadersCacheSize(): Int = findProperty(CLASSLOADERS_CACHE_SIZE)?.toString()?.toInt() ?: 0
+
+        fun Project.disableClassloaderCacheForProcessors(): Set<String> {
+            val value = findProperty(CLASSLOADERS_CACHE_DISABLE_FOR_PROCESSORS)?.toString() ?: ""
+            return value
+                .split(",")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .toSet()
+        }
 
         fun findMainKaptConfiguration(project: Project) = project.findKaptConfiguration(SourceSet.MAIN_SOURCE_SET_NAME)
 
@@ -464,7 +475,9 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
                     it.isVisible = false
                     it.isCanBeConsumed = false
                 }
+
             kaptTask.kaptClasspath.from(kaptClasspathConfiguration)
+            kaptTask.kaptExternalClasspath.from(*kaptClasspathConfiguration.files { it is ExternalDependency }.toTypedArray())
             kaptTask.kaptClasspathConfigurationNames.set(kaptClasspathConfigurations.map { it.name })
 
             KaptWithAndroid.androidVariantData(this)?.annotationProcessorOptionProviders?.let {
@@ -523,6 +536,7 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
                 it.annotationProcessorFqNames = kaptExtension.processors.split(',').filter { it.isNotEmpty() }
                 it.javacOptions = dslJavacOptions.get()
                 it.classLoadersCacheSize = project.classLoadersCacheSize()
+                it.disableClassloaderCacheForProcessors = project.disableClassloaderCacheForProcessors()
             }
 
             val subpluginOptions = getAPOptions()
