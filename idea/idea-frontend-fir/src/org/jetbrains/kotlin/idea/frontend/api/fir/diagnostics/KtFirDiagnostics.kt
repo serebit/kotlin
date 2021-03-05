@@ -558,6 +558,11 @@ sealed class KtFirDiagnostic<PSI: PsiElement> : KtDiagnosticWithPsi<PSI> {
         override val diagnosticClass get() = InnerClassOfGenericThrowableSubclass::class
     }
 
+    abstract class KclassWithNullableTypeParameterInSignature : KtFirDiagnostic<KtNamedDeclaration>() {
+        override val diagnosticClass get() = KclassWithNullableTypeParameterInSignature::class
+        abstract val typeParameter: KtTypeParameterSymbol
+    }
+
     abstract class TypeParameterAsReified : KtFirDiagnostic<PsiElement>() {
         override val diagnosticClass get() = TypeParameterAsReified::class
         abstract val typeParameter: KtTypeParameterSymbol
