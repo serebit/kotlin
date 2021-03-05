@@ -7,6 +7,7 @@ package org.jetbrains.kotlinx.serialization.compiler.backend.ir
 
 import org.jetbrains.kotlin.backend.common.deepCopyWithVariables
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.backend.common.lower.irIfThen
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
@@ -1006,5 +1007,94 @@ interface IrBuilderExtension {
                     else -> error("only one write\$Self function should exist")
                 }
             }
+
+    fun IrBlockBodyBuilder.serializeAllProperties(
+        generator: AbstractSerialGenerator,
+        serializableIrClass: IrClass,
+        serializableProperties: List<SerializableProperty>,
+        objectToSerialize: IrValueDeclaration,
+        localOutput: IrValueDeclaration,
+        localSerialDesc: IrValueDeclaration,
+        kOutputClass: ClassDescriptor,
+        ignoreIndexTo: Int,
+        initializerAdapter: (IrExpressionBody) -> IrExpression,
+        genericGetter: ((Int, KotlinType) -> IrExpression)?
+    ) {
+
+        fun SerializableProperty.irGet(): IrExpression {
+            val ownerType = objectToSerialize.symbol.owner.type
+            return getProperty(
+                irGet(
+                    type = ownerType,
+                    variable = objectToSerialize.symbol
+                ), getIrPropertyFrom(serializableIrClass)
+            )
+        }
+
+        for ((index, property) in serializableProperties.withIndex()) {
+            // output.writeXxxElementValue(classDesc, index, value)
+            val elementCall = formEncodeDecodePropertyCall(
+                generator,
+                irGet(localOutput),
+                property, { innerSerial, sti ->
+                    val f =
+                        kOutputClass.referenceFunctionSymbol("${CallingConventions.encode}${sti.elementMethodPrefix}Serializable${CallingConventions.elementPostfix}")
+                    f to listOf(
+                        irGet(localSerialDesc),
+                        irInt(index),
+                        innerSerial,
+                        property.irGet()
+                    )
+                }, {
+                    val f =
+                        kOutputClass.referenceFunctionSymbol("${CallingConventions.encode}${it.elementMethodPrefix}${CallingConventions.elementPostfix}")
+                    val args: MutableList<IrExpression> = mutableListOf(irGet(localSerialDesc), irInt(index))
+                    if (it.elementMethodPrefix != "Unit") args.add(property.irGet())
+                    f to args
+                },
+                genericGetter
+            )
+
+            // check for call to .shouldEncodeElementDefault
+            if (!property.optional || index < ignoreIndexTo) {
+                // emit call right away
+                +elementCall
+            } else {
+                // emit check:
+                // if (if (output.shouldEncodeElementDefault(this.descriptor, i)) true else {obj.prop != DEFAULT_VALUE} ) {
+                //    output.encodeIntElement(this.descriptor, i, obj.prop)// block {obj.prop != DEFAULT_VALUE} may contain several statements
+                val shouldEncodeFunc = kOutputClass.referenceFunctionSymbol(CallingConventions.shouldEncodeDefault)
+                val partA = irInvoke(irGet(localOutput), shouldEncodeFunc, irGet(localSerialDesc), irInt(index))
+                val partB = irNotEquals(property.irGet(), initializerAdapter(property.irField.initializer!!))
+                // Ir infrastructure does not have dedicated symbol for ||, so
+                //  `a || b == if (a) true else b`, see org.jetbrains.kotlin.ir.builders.PrimitivesKt.oror
+                val condition = irIfThenElse(compilerContext.irBuiltIns.booleanType, partA, irTrue(), partB)
+                +irIfThen(condition, elementCall)
+            }
+        }
+    }
+
+    fun IrBlockBodyBuilder.formEncodeDecodePropertyCall(
+        enclosingGenerator: AbstractSerialGenerator,
+        encoder: IrExpression,
+        property: SerializableProperty,
+        whenHaveSerializer: (serializer: IrExpression, sti: SerialTypeInfo) -> FunctionWithArgs,
+        whenDoNot: (sti: SerialTypeInfo) -> FunctionWithArgs,
+        genericGetter: ((Int, KotlinType) -> IrExpression)? = null,
+        returnTypeHint: IrType? = null
+    ): IrExpression {
+        val sti = enclosingGenerator.getSerialTypeInfo(property)
+        val innerSerial = serializerInstance(
+            enclosingGenerator,
+            sti.serializer,
+            property.module,
+            property.type,
+            property.genericIndex,
+            genericGetter
+        )
+        val (functionToCall, args: List<IrExpression>) = if (innerSerial != null) whenHaveSerializer(innerSerial, sti) else whenDoNot(sti)
+        val typeArgs = if (functionToCall.descriptor.typeParameters.isNotEmpty()) listOf(property.type.toIrType()) else listOf()
+        return irInvoke(encoder, functionToCall, typeArguments = typeArgs, valueArguments = args, returnTypeHint = returnTypeHint)
+    }
 
 }

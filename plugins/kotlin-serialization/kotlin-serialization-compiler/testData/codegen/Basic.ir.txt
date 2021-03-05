@@ -650,9 +650,17 @@ public final class OptionalUser : java/lang/Object {
           INVOKESTATIC (kotlin/jvm/internal/Intrinsics, checkNotNullParameter, (Ljava/lang/Object;Ljava/lang/String;)V)
         LABEL (L1)
         LINENUMBER (9)
+          ALOAD (1)
+          ALOAD (2)
+          ICONST_0
+          INVOKEINTERFACE (kotlinx/serialization/encoding/CompositeEncoder, shouldEncodeElementDefault, (Lkotlinx/serialization/descriptors/SerialDescriptor;I)Z)
+          IFEQ (L2)
+          ICONST_1
+          GOTO (L3)
+        LABEL (L2)
           ALOAD (0)
           GETFIELD (user, LUser;)
-        LABEL (L2)
+        LABEL (L4)
         LINENUMBER (10)
           NEW
           DUP
@@ -660,18 +668,15 @@ public final class OptionalUser : java/lang/Object {
           LDC ()
           INVOKESPECIAL (User, <init>, (Ljava/lang/String;Ljava/lang/String;)V)
           INVOKESTATIC (kotlin/jvm/internal/Intrinsics, areEqual, (Ljava/lang/Object;Ljava/lang/Object;)Z)
-          IFNE (L3)
-        LABEL (L4)
-        LINENUMBER (9)
+          IFNE (L5)
           ICONST_1
-          GOTO (L5)
-        LABEL (L3)
-          ALOAD (1)
-          ALOAD (2)
-          ICONST_0
-          INVOKEINTERFACE (kotlinx/serialization/encoding/CompositeEncoder, shouldEncodeElementDefault, (Lkotlinx/serialization/descriptors/SerialDescriptor;I)Z)
+          GOTO (L3)
         LABEL (L5)
+          ICONST_0
+        LABEL (L3)
           IFEQ (L6)
+        LABEL (L7)
+        LINENUMBER (9)
           ALOAD (1)
           ALOAD (2)
           ICONST_0
@@ -682,7 +687,7 @@ public final class OptionalUser : java/lang/Object {
           INVOKEINTERFACE (kotlinx/serialization/encoding/CompositeEncoder, encodeSerializableElement, (Lkotlinx/serialization/descriptors/SerialDescriptor;ILkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)V)
         LABEL (L6)
           RETURN
-        LABEL (L7)
+        LABEL (L8)
     }
 }
 
