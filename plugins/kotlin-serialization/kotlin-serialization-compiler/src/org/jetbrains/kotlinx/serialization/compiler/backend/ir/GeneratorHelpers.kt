@@ -1032,6 +1032,7 @@ interface IrBuilderExtension {
         }
 
         for ((index, property) in serializableProperties.withIndex()) {
+            if (index < ignoreIndexTo) continue
             // output.writeXxxElementValue(classDesc, index, value)
             val elementCall = formEncodeDecodePropertyCall(
                 generator,

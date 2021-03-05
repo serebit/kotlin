@@ -304,8 +304,23 @@ class SerializableIrGenerator(
                 val superWriteSelfF = superClass.findWriteSelfMethod()
                 if (superWriteSelfF != null) {
                     val args = mutableListOf<IrExpression>(irGet(objectToSerialize), irGet(localOutput), irGet(localSerialDesc))
+
+                    val typeArgsForParent = serializableDescriptor.typeConstructor.supertypes.single { it.toClassDescriptor?.isInternalSerializable == true }.arguments
+                    val parentWriteSelfSerializers = typeArgsForParent.map { arg ->
+                        val genericIdx = serializableDescriptor.defaultType.arguments.indexOf(arg).let { if (it == -1) null else it }
+                        val serial = findTypeSerializerOrContext(serializableDescriptor.module, arg.type)
+                        serializerInstance(
+                            this@SerializableIrGenerator,
+                            serial,
+                            serializableDescriptor.module,
+                            arg.type,
+                            genericIdx
+                        ) { it, _ ->
+                            irGet(writeSelfF.valueParameters[3 + it])
+                        }!!
+                    }
                     // todo: generic type args
-                    +irInvoke(null, superWriteSelfF.symbol, emptyList(), args)
+                    +irInvoke(null, superWriteSelfF.symbol, typeArgsForParent.map { it.type.toIrType() }, args + parentWriteSelfSerializers)
                 }
             }
             fun SerializableProperty.irGet(): IrExpression {
