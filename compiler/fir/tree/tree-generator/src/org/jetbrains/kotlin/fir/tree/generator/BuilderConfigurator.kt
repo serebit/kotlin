@@ -163,6 +163,7 @@ object BuilderConfigurator : AbstractBuilderConfigurator<FirTreeBuilder>(FirTree
                 value = "FirEmptyArgumentList"
             }
             useTypes(emptyArgumentListType)
+            withCopy()
         }
 
         builder(functionCall, init = configurationForFunctionCallBuilder)
@@ -171,6 +172,7 @@ object BuilderConfigurator : AbstractBuilderConfigurator<FirTreeBuilder>(FirTree
         builder(qualifiedAccessExpression) {
             parents += qualifiedAccessBuilder
             defaultNoReceivers()
+            withCopy()
         }
 
         builder(getClassCall) {
@@ -203,6 +205,7 @@ object BuilderConfigurator : AbstractBuilderConfigurator<FirTreeBuilder>(FirTree
         builder(variableAssignment) {
             parents += qualifiedAccessBuilder
             defaultNoReceivers()
+            withCopy()
         }
 
         builder(anonymousFunction) {

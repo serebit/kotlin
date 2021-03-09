@@ -493,6 +493,26 @@ private fun FirExpression.checkReceiver(name: String?): Boolean {
     return receiverName == name
 }
 
+fun FirQualifiedAccess.withReplacedSourceAndReceiver(
+    newSourceElement: FirSourceElement?,
+    newExplicitReceiver: FirExpression
+): FirQualifiedAccess {
+    return when (this) {
+        is FirFunctionCall -> buildFunctionCallCopy(this) {
+            source = newSourceElement
+            explicitReceiver = newExplicitReceiver
+        }
+        is FirQualifiedAccessExpression -> buildQualifiedAccessExpressionCopy(this) {
+            source = newSourceElement
+            explicitReceiver = newExplicitReceiver
+        }
+        is FirVariableAssignment -> buildVariableAssignmentCopy(this) {
+            source = newSourceElement
+            explicitReceiver = newExplicitReceiver
+        }
+        else -> throw AssertionError("Unexpected qualified access: ${this::class}: ${render()}")
+    }
+}
 
 fun FirQualifiedAccess.wrapWithSafeCall(receiver: FirExpression): FirSafeCallExpression {
     val checkedSafeCallSubject = buildCheckedSafeCallSubject {
@@ -503,14 +523,14 @@ fun FirQualifiedAccess.wrapWithSafeCall(receiver: FirExpression): FirSafeCallExp
         this.source = receiver.source?.fakeElement(FirFakeSourceElementKind.CheckedSafeCallSubject)
     }
 
-    replaceExplicitReceiver(checkedSafeCallSubject)
+    val qualifiedAccess = withReplacedSourceAndReceiver(source, checkedSafeCallSubject)
     return buildSafeCallExpression {
         this.receiver = receiver
         @OptIn(FirContractViolation::class)
         this.checkedSubjectRef = FirExpressionRef<FirCheckedSafeCallSubject>().apply {
             bind(checkedSafeCallSubject)
         }
-        this.regularQualifiedAccess = this@wrapWithSafeCall
+        this.regularQualifiedAccess = qualifiedAccess
         this.source = this@wrapWithSafeCall.source?.fakeElement(FirFakeSourceElementKind.DesugaredSafeCallExpression)
     }
 }

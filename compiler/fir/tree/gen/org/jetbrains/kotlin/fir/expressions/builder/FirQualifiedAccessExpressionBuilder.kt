@@ -60,3 +60,20 @@ inline fun buildQualifiedAccessExpression(init: FirQualifiedAccessExpressionBuil
     }
     return FirQualifiedAccessExpressionBuilder().apply(init).build()
 }
+
+@OptIn(ExperimentalContracts::class)
+inline fun buildQualifiedAccessExpressionCopy(original: FirQualifiedAccessExpression, init: FirQualifiedAccessExpressionBuilder.() -> Unit): FirQualifiedAccessExpression {
+    contract {
+        callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
+    }
+    val copyBuilder = FirQualifiedAccessExpressionBuilder()
+    copyBuilder.source = original.source
+    copyBuilder.typeRef = original.typeRef
+    copyBuilder.annotations.addAll(original.annotations)
+    copyBuilder.calleeReference = original.calleeReference
+    copyBuilder.typeArguments.addAll(original.typeArguments)
+    copyBuilder.explicitReceiver = original.explicitReceiver
+    copyBuilder.dispatchReceiver = original.dispatchReceiver
+    copyBuilder.extensionReceiver = original.extensionReceiver
+    return copyBuilder.apply(init).build()
+}

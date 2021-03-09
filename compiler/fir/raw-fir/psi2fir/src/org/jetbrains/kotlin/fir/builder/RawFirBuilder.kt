@@ -1992,9 +1992,8 @@ class RawFirBuilder(
                     return firSelector.wrapWithSafeCall(receiver)
                 }
 
-                firSelector.replaceExplicitReceiver(receiver)
+                return firSelector.withReplacedSourceAndReceiver(expression.toFirSourceElement(), receiver)
             }
-            firSelector.replaceSource(expression.toFirSourceElement())
             return firSelector
         }
 

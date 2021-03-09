@@ -70,3 +70,20 @@ inline fun buildImplicitInvokeCall(init: FirImplicitInvokeCallBuilder.() -> Unit
     }
     return FirImplicitInvokeCallBuilder().apply(init).build()
 }
+
+@OptIn(ExperimentalContracts::class)
+inline fun buildImplicitInvokeCallCopy(original: FirImplicitInvokeCall, init: FirImplicitInvokeCallBuilder.() -> Unit): FirImplicitInvokeCall {
+    contract {
+        callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
+    }
+    val copyBuilder = FirImplicitInvokeCallBuilder()
+    copyBuilder.source = original.source
+    copyBuilder.annotations.addAll(original.annotations)
+    copyBuilder.typeArguments.addAll(original.typeArguments)
+    copyBuilder.explicitReceiver = original.explicitReceiver
+    copyBuilder.dispatchReceiver = original.dispatchReceiver
+    copyBuilder.extensionReceiver = original.extensionReceiver
+    copyBuilder.argumentList = original.argumentList
+    copyBuilder.calleeReference = original.calleeReference
+    return copyBuilder.apply(init).build()
+}

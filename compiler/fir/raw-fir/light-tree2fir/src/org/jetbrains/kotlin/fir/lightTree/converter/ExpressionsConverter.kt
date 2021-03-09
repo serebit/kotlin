@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.fir.lightTree.converter
 import com.intellij.lang.LighterASTNode
 import com.intellij.psi.TokenType
 import com.intellij.util.diff.FlyweightCapableTreeStructure
-import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.KtNodeTypes.*
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
@@ -493,13 +492,13 @@ class ExpressionsConverter(
         }
 
         (firSelector as? FirQualifiedAccess)?.let {
+            val receiver = firReceiver!!
             if (isSafe) {
-                return it.wrapWithSafeCall(firReceiver!!)
+                return it.wrapWithSafeCall(receiver)
             }
 
-            it.replaceExplicitReceiver(firReceiver)
+            return it.withReplacedSourceAndReceiver(dotQualifiedExpression.toFirSourceElement(), receiver) as FirExpression
         }
-        firSelector.replaceSource(dotQualifiedExpression.toFirSourceElement())
         return firSelector
     }
 

@@ -582,22 +582,24 @@ abstract class BaseFirBuilder<T>(val baseSession: FirSession, val context: Conte
             val argumentReceiver = argument.receiverExpression
             val argumentSelector = argument.selectorExpression
 
+            val argumentSource = argument.toFirSourceElement()
             val argumentReceiverVariable = generateTemporaryVariable(
                 this@BaseFirBuilder.baseSession,
                 argumentReceiver?.toFirSourceElement(),
                 Name.special("<receiver>"),
                 argumentReceiver?.convert() ?: buildErrorExpression {
-                    source = argument.toFirSourceElement()
+                    source = argumentSource
                     diagnostic = ConeSimpleDiagnostic("Qualified expression without receiver", DiagnosticKind.Syntax)
                 }
             ).also { statements += it }
 
             val firArgument = generateResolvedAccessExpression(argumentReceiverVariable.source, argumentReceiverVariable).let { receiver ->
                 val firArgumentSelector = argumentSelector?.convert() ?: buildErrorExpression {
-                    source = argument.toFirSourceElement()
+                    source = argumentSource
                     diagnostic = ConeSimpleDiagnostic("Qualified expression without selector", DiagnosticKind.Syntax)
                 }
-                firArgumentSelector.also { if (it is FirQualifiedAccessExpression) it.replaceExplicitReceiver(receiver) }
+                if (firArgumentSelector !is FirQualifiedAccessExpression) firArgumentSelector
+                else firArgumentSelector.withReplacedSourceAndReceiver(argumentSource, receiver) as FirQualifiedAccessExpression
             }
 
             // initialValueVar is only used for postfix increment/decrement (stores the argument value before increment/decrement).

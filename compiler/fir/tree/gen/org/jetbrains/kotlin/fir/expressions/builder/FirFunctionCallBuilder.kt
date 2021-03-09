@@ -67,3 +67,21 @@ inline fun buildFunctionCall(init: FirFunctionCallBuilder.() -> Unit): FirFuncti
     }
     return FirFunctionCallBuilder().apply(init).build()
 }
+
+@OptIn(ExperimentalContracts::class)
+inline fun buildFunctionCallCopy(original: FirFunctionCall, init: FirFunctionCallBuilder.() -> Unit): FirFunctionCall {
+    contract {
+        callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
+    }
+    val copyBuilder = FirFunctionCallBuilder()
+    copyBuilder.source = original.source
+    copyBuilder.typeRef = original.typeRef
+    copyBuilder.annotations.addAll(original.annotations)
+    copyBuilder.typeArguments.addAll(original.typeArguments)
+    copyBuilder.explicitReceiver = original.explicitReceiver
+    copyBuilder.dispatchReceiver = original.dispatchReceiver
+    copyBuilder.extensionReceiver = original.extensionReceiver
+    copyBuilder.argumentList = original.argumentList
+    copyBuilder.calleeReference = original.calleeReference
+    return copyBuilder.apply(init).build()
+}
