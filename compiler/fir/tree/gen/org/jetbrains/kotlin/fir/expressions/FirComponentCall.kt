@@ -31,8 +31,6 @@ abstract class FirComponentCall : FirFunctionCall() {
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitComponentCall(this, data)
 
-    abstract override fun replaceSource(newSource: FirSourceElement?)
-
     abstract override fun replaceTypeRef(newTypeRef: FirTypeRef)
 
     abstract override fun replaceTypeArguments(newTypeArguments: List<FirTypeProjection>)
@@ -42,8 +40,6 @@ abstract class FirComponentCall : FirFunctionCall() {
     abstract override fun replaceCalleeReference(newCalleeReference: FirNamedReference)
 
     abstract override fun replaceCalleeReference(newCalleeReference: FirReference)
-
-    abstract override fun replaceExplicitReceiver(newExplicitReceiver: FirExpression?)
 
     abstract override fun <D> transformAnnotations(transformer: FirTransformer<D>, data: D): FirComponentCall
 

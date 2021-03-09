@@ -29,13 +29,9 @@ abstract class FirThisReceiverExpression : FirQualifiedAccessExpression() {
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitThisReceiverExpression(this, data)
 
-    abstract override fun replaceSource(newSource: FirSourceElement?)
-
     abstract override fun replaceTypeRef(newTypeRef: FirTypeRef)
 
     abstract override fun replaceTypeArguments(newTypeArguments: List<FirTypeProjection>)
-
-    abstract override fun replaceExplicitReceiver(newExplicitReceiver: FirExpression?)
 
     abstract fun replaceCalleeReference(newCalleeReference: FirThisReference)
 

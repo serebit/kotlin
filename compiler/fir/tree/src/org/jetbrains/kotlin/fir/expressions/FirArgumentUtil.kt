@@ -29,8 +29,4 @@ fun buildResolvedArgumentList(mapping: LinkedHashMap<FirExpression, FirValuePara
 object FirEmptyArgumentList : FirAbstractArgumentList() {
     override val arguments: List<FirExpression>
         get() = emptyList()
-
-
-    override fun replaceSource(newSource: FirSourceElement?) {
-    }
 }

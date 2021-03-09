@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.fir.visitors.*
  */
 
 internal class FirImplicitInvokeCallImpl(
-    override var source: FirSourceElement?,
+    override val source: FirSourceElement?,
     override val annotations: MutableList<FirAnnotationCall>,
     override val typeArguments: MutableList<FirTypeProjection>,
     override var explicitReceiver: FirExpression?,
@@ -95,10 +95,6 @@ internal class FirImplicitInvokeCallImpl(
         return this
     }
 
-    override fun replaceSource(newSource: FirSourceElement?) {
-        source = newSource
-    }
-
     override fun replaceTypeRef(newTypeRef: FirTypeRef) {
         typeRef = newTypeRef
     }
@@ -106,10 +102,6 @@ internal class FirImplicitInvokeCallImpl(
     override fun replaceTypeArguments(newTypeArguments: List<FirTypeProjection>) {
         typeArguments.clear()
         typeArguments.addAll(newTypeArguments)
-    }
-
-    override fun replaceExplicitReceiver(newExplicitReceiver: FirExpression?) {
-        explicitReceiver = newExplicitReceiver
     }
 
     override fun replaceArgumentList(newArgumentList: FirArgumentList) {

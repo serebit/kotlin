@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.fir.visitors.*
  */
 
 internal class FirCallableReferenceAccessImpl(
-    override var source: FirSourceElement?,
+    override val source: FirSourceElement?,
     override var typeRef: FirTypeRef,
     override val annotations: MutableList<FirAnnotationCall>,
     override val typeArguments: MutableList<FirTypeProjection>,
@@ -90,10 +90,6 @@ internal class FirCallableReferenceAccessImpl(
         return this
     }
 
-    override fun replaceSource(newSource: FirSourceElement?) {
-        source = newSource
-    }
-
     override fun replaceTypeRef(newTypeRef: FirTypeRef) {
         typeRef = newTypeRef
     }
@@ -101,10 +97,6 @@ internal class FirCallableReferenceAccessImpl(
     override fun replaceTypeArguments(newTypeArguments: List<FirTypeProjection>) {
         typeArguments.clear()
         typeArguments.addAll(newTypeArguments)
-    }
-
-    override fun replaceExplicitReceiver(newExplicitReceiver: FirExpression?) {
-        explicitReceiver = newExplicitReceiver
     }
 
     override fun replaceCalleeReference(newCalleeReference: FirNamedReference) {

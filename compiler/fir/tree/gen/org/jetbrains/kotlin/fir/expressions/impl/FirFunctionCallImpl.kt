@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.fir.visitors.*
  */
 
 open class FirFunctionCallImpl @FirImplementationDetail constructor(
-    override var source: FirSourceElement?,
+    override val source: FirSourceElement?,
     override var typeRef: FirTypeRef,
     override val annotations: MutableList<FirAnnotationCall>,
     override val typeArguments: MutableList<FirTypeProjection>,
@@ -94,10 +94,6 @@ open class FirFunctionCallImpl @FirImplementationDetail constructor(
         return this
     }
 
-    override fun replaceSource(newSource: FirSourceElement?) {
-        source = newSource
-    }
-
     override fun replaceTypeRef(newTypeRef: FirTypeRef) {
         typeRef = newTypeRef
     }
@@ -105,10 +101,6 @@ open class FirFunctionCallImpl @FirImplementationDetail constructor(
     override fun replaceTypeArguments(newTypeArguments: List<FirTypeProjection>) {
         typeArguments.clear()
         typeArguments.addAll(newTypeArguments)
-    }
-
-    override fun replaceExplicitReceiver(newExplicitReceiver: FirExpression?) {
-        explicitReceiver = newExplicitReceiver
     }
 
     override fun replaceArgumentList(newArgumentList: FirArgumentList) {
