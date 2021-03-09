@@ -85,6 +85,19 @@ void ObjHeader::SetAssociatedObject(void* obj) {
 
 #endif // KONAN_OBJC_INTEROP
 
+ALWAYS_INLINE bool ObjHeader::hasWeakReferenceCounter() const noexcept {
+    if (auto* extraObject = mm::ExtraObjectData::GetOrNull(this)) {
+        return extraObject->HasWeakReferenceCounter();
+    }
+    return false;
+}
+
+ALWAYS_INLINE void ObjHeader::clearWeakReferenceCounter() noexcept {
+    if (auto* extraObject = mm::ExtraObjectData::GetOrNull(this)) {
+        extraObject->ClearWeakReferenceCounter();
+    }
+}
+
 // static
 MetaObjHeader* ObjHeader::createMetaObject(ObjHeader* object) {
     return mm::ExtraObjectData::Install(object).AsMetaObjHeader();
@@ -109,7 +122,12 @@ extern "C" MemoryState* InitMemory(bool firstRuntime) {
 }
 
 extern "C" void DeinitMemory(MemoryState* state, bool destroyRuntime) {
-    mm::ThreadRegistry::Instance().Unregister(FromMemoryState(state));
+    auto* node = FromMemoryState(state);
+    if (destroyRuntime) {
+        node->Get()->gc().PerformFullGC();
+        // TODO: Also make sure that finalizers are run.
+    }
+    mm::ThreadRegistry::Instance().Unregister(node);
 }
 
 extern "C" void RestoreMemory(MemoryState*) {
