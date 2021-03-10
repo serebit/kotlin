@@ -11620,9 +11620,9 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             runTest("compiler/testData/codegen/box/inference/dontUpdateFunctionTypeTwice.kt");
         }
 
-        @TestMetadata("dontUpdateFunctionTypeTwiceForDependentContext.kt")
-        public void testDontUpdateFunctionTypeTwiceForDependentContext() throws Exception {
-            runTest("compiler/testData/codegen/box/inference/dontUpdateFunctionTypeTwiceForDependentContext.kt");
+        @TestMetadata("dontUpdateFunctionTypeTwice2.kt")
+        public void testDontUpdateFunctionTypeTwice2() throws Exception {
+            runTest("compiler/testData/codegen/box/inference/dontUpdateFunctionTypeTwice2.kt");
         }
 
         @TestMetadata("earlyReturnInsideCrossinlineLambda.kt")

@@ -38,6 +38,7 @@ import org.jetbrains.kotlin.resolve.calls.tasks.TracingStrategyImpl
 import org.jetbrains.kotlin.resolve.calls.util.CallMaker
 import org.jetbrains.kotlin.resolve.checkers.MissingDependencySupertypeChecker
 import org.jetbrains.kotlin.resolve.deprecation.DeprecationResolver
+import org.jetbrains.kotlin.resolve.scopes.LexicalScopeKind
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.TransientReceiver
 import org.jetbrains.kotlin.types.*
@@ -45,10 +46,7 @@ import org.jetbrains.kotlin.types.expressions.CoercionStrategy
 import org.jetbrains.kotlin.types.expressions.DoubleColonExpressionResolver
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingServices
 import org.jetbrains.kotlin.types.expressions.typeInfoFactory.createTypeInfo
-import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
-import org.jetbrains.kotlin.types.typeUtil.contains
-import org.jetbrains.kotlin.types.typeUtil.isUnit
-import org.jetbrains.kotlin.types.typeUtil.shouldBeSubstituted
+import org.jetbrains.kotlin.types.typeUtil.*
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class ResolvedAtomCompleter(
@@ -224,7 +222,7 @@ class ResolvedAtomCompleter(
         val receiverType = lambda.receiver
 
         val approximatedValueParameterTypes = lambda.parameters.map { parameterType ->
-            if (parameterType.shouldBeSubstituted()) {
+            if (parameterType.shouldBeUpdated()) {
                 typeApproximator.approximateDeclarationType(
                     resultSubstitutor.safeSubstitute(parameterType),
                     local = true,
@@ -294,18 +292,20 @@ class ResolvedAtomCompleter(
         val functionDescriptor = trace.bindingContext.get(BindingContext.FUNCTION, ktFunction) as? FunctionDescriptorImpl
             ?: throw AssertionError("No function descriptor for resolved lambda argument")
 
-        if (this.topLevelCallContext.contextDependency == ContextDependency.DEPENDENT) {
+        val isActuallyDependentContext = topLevelCallContext.scope.kind == LexicalScopeKind.PROPERTY_DELEGATE_METHOD ||
+                topLevelCallContext.contextDependency == ContextDependency.DEPENDENT
+        if (functionDescriptor.returnType.shouldBeUpdated() || isActuallyDependentContext) {
             functionDescriptor.setReturnType(returnType)
         }
 
         val extensionReceiverParameter = functionDescriptor.extensionReceiverParameter
 
-        if (receiverType != null && extensionReceiverParameter is ReceiverParameterDescriptorImpl && extensionReceiverParameter.type.shouldBeSubstituted()) {
+        if (receiverType != null && extensionReceiverParameter is ReceiverParameterDescriptorImpl && extensionReceiverParameter.type.shouldBeUpdated()) {
             extensionReceiverParameter.setOutType(receiverType)
         }
 
         for ((i, valueParameter) in functionDescriptor.valueParameters.withIndex()) {
-            if (valueParameter !is ValueParameterDescriptorImpl || !valueParameter.type.shouldBeSubstituted()) continue
+            if (valueParameter !is ValueParameterDescriptorImpl || !valueParameter.type.shouldBeUpdated()) continue
             valueParameter.setOutType(valueParameters[i])
         }
 
