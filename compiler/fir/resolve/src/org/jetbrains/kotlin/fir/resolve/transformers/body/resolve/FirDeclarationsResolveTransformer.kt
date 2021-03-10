@@ -459,19 +459,19 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
         }
 
         doTransformTypeParameters(simpleFunction)
-        // TODO: I think it worth creating something like runAllPhasesForLocalFunction
-        context.withTypeParametersOf(simpleFunction) {
-            val containingDeclaration = context.containerIfAny
+
+        val containingDeclaration = context.containerIfAny
+        return context.withSimpleFunction(simpleFunction) {
+            // TODO: I think it worth creating something like runAllPhasesForLocalFunction
             if (containingDeclaration != null && containingDeclaration !is FirClass<*>) {
                 // For class members everything should be already prepared
                 prepareSignatureForBodyResolve(simpleFunction)
                 simpleFunction.transformStatus(this, simpleFunction.resolveStatus().mode())
             }
-        }
-
-        return withFullBodyResolve {
-            context.withSimpleFunction(simpleFunction, components) {
-                transformFunctionWithGivenSignature(simpleFunction, ResolutionMode.ContextIndependent)
+            context.forFunctionBody(simpleFunction, components) {
+                withFullBodyResolve {
+                    transformFunctionWithGivenSignature(simpleFunction, ResolutionMode.ContextIndependent)
+                }
             }
         }
     }
@@ -556,7 +556,7 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
                 constructor.transformValueParameters(transformer, data)
             }
             val parametersScope = context.buildConstructorParametersScope(constructor)
-            context.forDelegatedConstructor(constructor, parametersScope) {
+            context.forDelegatedConstructor(parametersScope) {
                 constructor.transformDelegatedConstructor(transformer, data)
             }
             context.forConstructorBody(constructor, parametersScope) {
@@ -590,8 +590,9 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
             valueParameter.replaceReturnTypeRef(
                 valueParameter.returnTypeRef.errorTypeFromPrototype(ConeSimpleDiagnostic("Unresolved value parameter type"))
             )
-            context.storeVariable(valueParameter)
-            return valueParameter.compose()
+            return context.withValueParameter(valueParameter) {
+                valueParameter.compose()
+            }
         }
 
         dataFlowAnalyzer.enterValueParameter(valueParameter)
