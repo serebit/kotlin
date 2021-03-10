@@ -555,11 +555,8 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
             context.forConstructorParameters(constructor, owningClass, components) {
                 constructor.transformValueParameters(transformer, data)
             }
-            val parametersScope = context.buildConstructorParametersScope(constructor)
-            context.forDelegatedConstructor(parametersScope) {
-                constructor.transformDelegatedConstructor(transformer, data)
-            }
-            context.forConstructorBody(constructor, parametersScope) {
+            constructor.transformDelegatedConstructor(transformer, data)
+            context.forConstructorBody(constructor) {
                 constructor.transformBody(transformer, data)
             }
         }
