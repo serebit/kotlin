@@ -18,6 +18,6 @@ private object Scope {
     fun <T> materialize(): T = Any() as T
 
     fun test(i: Inv<out Number>) {
-        val <!UNUSED_VARIABLE!>p<!>: Int by <!DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE, IMPLICIT_NOTHING_TYPE_ARGUMENT_IN_RETURN_POSITION{OI}!>Scope.<!TYPE_MISMATCH!>Delegate<!>(<!TYPE_MISMATCH!>i<!>)<!>
+        val <!UNUSED_VARIABLE!>p<!>: Int by <!DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE{OI}, IMPLICIT_NOTHING_TYPE_ARGUMENT_IN_RETURN_POSITION!>Scope.<!TYPE_MISMATCH{OI}!>Delegate<!>(<!TYPE_MISMATCH{OI}!>i<!>)<!>
     }
 }

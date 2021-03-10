@@ -14,7 +14,7 @@ fun <T: A> emptyNullableListOfA(): List<T>? = null
 
 fun testExclExcl() {
     doList(<!TYPE_INFERENCE_UPPER_BOUND_VIOLATED{OI}!>emptyNullableListOfA<!>()!!) //should be an error here
-    val <!UNUSED_VARIABLE!>l<!>: List<Int> = <!TYPE_MISMATCH{OI}!><!TYPE_MISMATCH{OI}!>id<!>(<!TYPE_INFERENCE_UPPER_BOUND_VIOLATED{OI}, TYPE_MISMATCH!>emptyNullableListOfA<!>()<!TYPE_MISMATCH{OI}!>!!<!>)<!>
+    val <!UNUSED_VARIABLE!>l<!>: List<Int> = <!TYPE_MISMATCH!><!TYPE_MISMATCH!>id<!>(<!TYPE_INFERENCE_UPPER_BOUND_VIOLATED{OI}, TYPE_MISMATCH!>emptyNullableListOfA<!>()<!TYPE_MISMATCH!>!!<!>)<!>
 
     doList(strangeNullableList { doInt(it) }!!) //lambda should be analyzed (at completion phase)
 }
