@@ -51,6 +51,7 @@ abstract class PSIKotlinCall : KotlinCall {
     abstract val tracingStrategy: TracingStrategy
 
     override fun toString() = "$psiCall"
+    override fun isEqualByCallElement(other: Any?) = other is PSIKotlinCall && other.psiCall.callElement == this.psiCall.callElement
 }
 
 class PSIKotlinCallImpl(

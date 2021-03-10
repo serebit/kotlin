@@ -15,8 +15,11 @@ import org.jetbrains.kotlin.fir.types.coneTypeSafe
 import org.jetbrains.kotlin.resolve.calls.inference.components.ConstraintSystemUtilContext
 import org.jetbrains.kotlin.resolve.calls.inference.components.PostponedArgumentInputTypesResolver
 import org.jetbrains.kotlin.resolve.calls.inference.model.ArgumentConstraintPosition
+import org.jetbrains.kotlin.resolve.calls.inference.model.Constraint
 import org.jetbrains.kotlin.resolve.calls.inference.model.FixVariableConstraintPosition
+import org.jetbrains.kotlin.resolve.calls.inference.model.VariableWithConstraints
 import org.jetbrains.kotlin.resolve.calls.model.PostponedAtomWithRevisableExpectedType
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedAtomMarker
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.TypeVariableMarker
 
@@ -115,4 +118,10 @@ object ConeConstraintSystemUtilContext : ConstraintSystemUtilContext {
     override fun createTypeVariableForCallableReferenceReturnType(): TypeVariableMarker {
         return ConeTypeVariableForPostponedAtom(PostponedArgumentInputTypesResolver.TYPE_VARIABLE_NAME_FOR_LAMBDA_RETURN_TYPE)
     }
+
+    // TODO: implement taking resolved atom and filter constraints by it
+    override fun getExpectedTypeConstraintsByOwnAtom(
+        resolvedAtom: ResolvedAtomMarker?,
+        variableWithConstraints: VariableWithConstraints
+    ) = emptyList<Constraint>()
 }

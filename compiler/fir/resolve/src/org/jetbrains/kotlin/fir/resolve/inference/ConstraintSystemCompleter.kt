@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-class ConstraintSystemCompleter(private val components: BodyResolveComponents) {
+class ConstraintSystemCompleter(components: BodyResolveComponents, private val utilContext: ConeConstraintSystemUtilContext) {
     private val inferenceComponents = components.session.inferenceComponents
     val variableFixationFinder = inferenceComponents.variableFixationFinder
     private val postponedArgumentsInputTypesResolver = inferenceComponents.postponedArgumentInputTypesResolver
@@ -319,7 +319,10 @@ class ConstraintSystemCompleter(private val components: BodyResolveComponents) {
         postponedResolveKtPrimitives: List<PostponedResolvedAtom>
     ) {
         val direction = TypeVariableDirectionCalculator(c, postponedResolveKtPrimitives, topLevelType).getDirection(variableWithConstraints)
-        val resultType = inferenceComponents.resultTypeResolver.findResultType(c, variableWithConstraints, direction)
+        // TODO: obtain atom and pass it here
+        val expectedTypeConstraintsByOwnAtom = utilContext.getExpectedTypeConstraintsByOwnAtom(null, variableWithConstraints)
+        val resultType =
+            inferenceComponents.resultTypeResolver.findResultType(c, variableWithConstraints, direction, expectedTypeConstraintsByOwnAtom)
         val variable = variableWithConstraints.typeVariable
         c.fixVariable(variable, resultType, ConeFixVariableConstraintPosition(variable)) // TODO: obtain atom for diagnostics
     }

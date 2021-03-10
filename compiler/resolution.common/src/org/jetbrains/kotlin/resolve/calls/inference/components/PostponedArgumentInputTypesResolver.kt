@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.*
 
 private typealias Context = ConstraintSystemCompletionContext
-private typealias ResolvedAtomProvider = (TypeVariableMarker) -> Any?
+private typealias ResolvedAtomProvider = (TypeVariableMarker) -> ResolvedAtomMarker?
 
 class PostponedArgumentInputTypesResolver(
     private val resultTypeResolver: ResultTypeResolver,
@@ -208,7 +208,8 @@ class PostponedArgumentInputTypesResolver(
                 val computedResultType = resultTypeResolver.findResultType(
                     this@computeResultingFunctionalConstructor,
                     notFixedTypeVariables.getValue(expectedTypeConstructor),
-                    TypeVariableDirectionCalculator.ResolveDirection.TO_SUPERTYPE
+                    TypeVariableDirectionCalculator.ResolveDirection.TO_SUPERTYPE,
+                    null
                 )
 
                 // Avoid KFunction<...>/Function<...> types
@@ -458,7 +459,7 @@ class PostponedArgumentInputTypesResolver(
         postponedArguments: List<PostponedResolvedAtomMarker>,
         topLevelType: KotlinTypeMarker,
         dependencyProvider: TypeVariableDependencyInformationProvider,
-        resolvedAtomProvider: ResolvedAtomProvider
+        resolvedAtomProvider: ResolvedAtomProvider,
     ): Boolean = with(c) {
         val expectedType = argument.run { safeAs<PostponedAtomWithRevisableExpectedType>()?.revisedExpectedType ?: expectedType }
 
@@ -488,20 +489,26 @@ class PostponedArgumentInputTypesResolver(
         val relatedVariables = type.extractArgumentsForFunctionalTypeOrSubtype()
             .flatMap { getAllDeeplyRelatedTypeVariables(it, dependencyProvider) }
         val variableForFixation = variableFixationFinder.findFirstVariableForFixation(
-            this@fixNextReadyVariableForParameterType, relatedVariables, postponedArguments, ConstraintSystemCompletionMode.FULL, topLevelType
+            this@fixNextReadyVariableForParameterType,
+            relatedVariables,
+            postponedArguments,
+            ConstraintSystemCompletionMode.FULL,
+            topLevelType
         )
 
         if (variableForFixation == null || !variableForFixation.hasProperConstraint)
             return false
 
         val variableWithConstraints = notFixedTypeVariables.getValue(variableForFixation.variable)
-        val resultType =
-            resultTypeResolver.findResultType(
-                this@fixNextReadyVariableForParameterType,
-                variableWithConstraints,
-                TypeVariableDirectionCalculator.ResolveDirection.UNKNOWN
-            )
         val variable = variableWithConstraints.typeVariable
+        val resolvedAtom = resolvedAtomByTypeVariableProvider(variable)
+        val expectedTypeConstraintsByOwnAtom = getExpectedTypeConstraintsByOwnAtom(resolvedAtom, variableWithConstraints)
+        val resultType = resultTypeResolver.findResultType(
+            this@fixNextReadyVariableForParameterType,
+            variableWithConstraints,
+            TypeVariableDirectionCalculator.ResolveDirection.UNKNOWN,
+            expectedTypeConstraintsByOwnAtom
+        )
 
         fixVariable(
             variable,

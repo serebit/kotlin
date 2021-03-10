@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.resolve.calls.inference.components
 
 import org.jetbrains.kotlin.builtins.*
-import org.jetbrains.kotlin.builtins.getPureArgumentsForFunctionalTypeOrSubtype
 import org.jetbrains.kotlin.resolve.calls.components.CreateFreshVariablesSubstitutor.shouldBeFlexible
 import org.jetbrains.kotlin.resolve.calls.inference.components.PostponedArgumentInputTypesResolver.Companion.TYPE_VARIABLE_NAME_FOR_CR_RETURN_TYPE
 import org.jetbrains.kotlin.resolve.calls.inference.components.PostponedArgumentInputTypesResolver.Companion.TYPE_VARIABLE_NAME_FOR_LAMBDA_RETURN_TYPE
@@ -17,7 +16,6 @@ import org.jetbrains.kotlin.resolve.calls.model.*
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
-import org.jetbrains.kotlin.types.model.TypeConstructorMarker
 import org.jetbrains.kotlin.types.model.TypeVariableMarker
 import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.typeUtil.unCapture as unCaptureKotlinType
@@ -122,5 +120,17 @@ class ClassicConstraintSystemUtilContext(
             builtIns,
             TYPE_VARIABLE_NAME_FOR_CR_RETURN_TYPE
         )
+    }
+
+    override fun getExpectedTypeConstraintsByOwnAtom(
+        resolvedAtom: ResolvedAtomMarker?,
+        variableWithConstraints: VariableWithConstraints
+    ): List<Constraint> {
+        require(resolvedAtom is ResolvedAtom?)
+        val atom = resolvedAtom?.atom
+        return variableWithConstraints.constraints.filter {
+            val fromPosition = it.position.from as? BaseExpectedTypeConstraintPosition<*> ?: return@filter false
+            atom is KotlinCall && atom.isEqualByCallElement(fromPosition.topLevelCall)
+        }
     }
 }

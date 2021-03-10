@@ -23,8 +23,13 @@ class ResultTypeResolver(
         fun isReified(variable: TypeVariableMarker): Boolean
     }
 
-    fun findResultType(c: Context, variableWithConstraints: VariableWithConstraints, direction: ResolveDirection): KotlinTypeMarker {
-        findResultTypeOrNull(c, variableWithConstraints, direction)?.let { return it }
+    fun findResultType(
+        c: Context,
+        variableWithConstraints: VariableWithConstraints,
+        direction: ResolveDirection,
+        expectedTypeConstraintsByOwnAtom: List<Constraint>?
+    ): KotlinTypeMarker {
+        findResultTypeOrNull(c, variableWithConstraints, direction, expectedTypeConstraintsByOwnAtom)?.let { return it }
 
         // no proper constraints
         return run {
@@ -35,13 +40,15 @@ class ResultTypeResolver(
     private fun findResultTypeOrNull(
         c: Context,
         variableWithConstraints: VariableWithConstraints,
-        direction: ResolveDirection
+        direction: ResolveDirection,
+        expectedTypeConstraintByOwnAtom: List<Constraint>?
     ): KotlinTypeMarker? {
         findResultIfThereIsEqualsConstraint(c, variableWithConstraints)?.let { return it }
 
         val subType = c.findSubType(variableWithConstraints)
         // Super type should be the most flexible, sub type should be the least one
-        val superType = c.findSuperType(variableWithConstraints).makeFlexibleIfNecessary(c, variableWithConstraints.constraints)
+        val superType = c.findSuperType(variableWithConstraints, expectedTypeConstraintByOwnAtom)
+            .makeFlexibleIfNecessary(c, variableWithConstraints.constraints)
 
         return if (direction == ResolveDirection.TO_SUBTYPE || direction == ResolveDirection.UNKNOWN) {
             c.resultType(subType, superType, variableWithConstraints)
@@ -211,22 +218,26 @@ class ResultTypeResolver(
         }
     }
 
-    private fun Context.findSuperType(variableWithConstraints: VariableWithConstraints): KotlinTypeMarker? {
-        val upperConstraints =
-            variableWithConstraints.constraints.filter { it.kind == ConstraintKind.UPPER && this@findSuperType.isProperTypeForFixation(it.type) }
+    private fun Context.findSuperType(
+        variableWithConstraints: VariableWithConstraints,
+        expectedTypeConstraintsByOwnAtom: List<Constraint>?
+    ): KotlinTypeMarker? {
+        val upperConstraints = variableWithConstraints.constraints.filter {
+            it.kind == ConstraintKind.UPPER && this@findSuperType.isProperTypeForFixation(it.type)
+        }
         if (upperConstraints.isNotEmpty()) {
             val intersectionUpperType = intersectTypes(upperConstraints.map { it.type })
-            val expectedTypeConstraint = upperConstraints.firstOrNull { it.isExpectedTypePosition() }
-            val upperType = if (expectedTypeConstraint != null && intersectionUpperType.typeConstructor().isIntersection()) {
-                /*
-                 * We shouldn't infer a type variable into the intersection type if there is an explicit expected type,
-                 * otherwise it can lead to something like this:
-                 *
-                 * fun <T : String> materialize(): T = null as T
-                 * val bar: Int = materialize() // no errors, T is inferred into String & Int
-                 */
-                expectedTypeConstraint.type
-            } else intersectionUpperType
+            val upperType =
+                if (!expectedTypeConstraintsByOwnAtom.isNullOrEmpty() && intersectionUpperType.typeConstructor().isIntersection()) {
+                    /*
+                     * We shouldn't infer a type variable into the intersection type if there is an explicit expected type,
+                     * otherwise it can lead to something like this:
+                     *
+                     * fun <T : String> materialize(): T = null as T
+                     * val bar: Int = materialize() // no errors, T is inferred into String & Int
+                     */
+                    intersectTypes(expectedTypeConstraintsByOwnAtom.map { it.type })
+                } else intersectionUpperType
 
             return typeApproximator.approximateToSubType(
                 upperType,

@@ -21,6 +21,7 @@ class KotlinConstraintSystemCompleter(
     private val resultTypeResolver: ResultTypeResolver,
     val variableFixationFinder: VariableFixationFinder,
     private val postponedArgumentInputTypesResolver: PostponedArgumentInputTypesResolver,
+    private val resolutionTypeSystemContext: ConstraintSystemUtilContext,
 ) {
     fun runCompletion(
         c: ConstraintSystemCompletionContext,
@@ -109,10 +110,8 @@ class KotlinConstraintSystemCompleter(
                         argument,
                         postponedArguments,
                         topLevelType,
-                        dependencyProvider,
-                    ) {
-                        findResolvedAtomBy(it, topLevelAtoms) ?: topLevelAtoms.firstOrNull()
-                    }
+                        dependencyProvider
+                    ) { findResolvedAtomByOrFirst(it, topLevelAtoms) }
 
                     if (wasFixedSomeVariable)
                         continue@completion
@@ -256,7 +255,12 @@ class KotlinConstraintSystemCompleter(
         variableWithConstraints: VariableWithConstraints,
         topLevelAtoms: List<ResolvedAtom>
     ) {
-        fixVariable(c, variableWithConstraints, TypeVariableDirectionCalculator.ResolveDirection.UNKNOWN, topLevelAtoms)
+        fixVariable(
+            c,
+            variableWithConstraints,
+            TypeVariableDirectionCalculator.ResolveDirection.UNKNOWN,
+            topLevelAtoms
+        )
     }
 
     private fun fixVariable(
@@ -265,9 +269,12 @@ class KotlinConstraintSystemCompleter(
         direction: TypeVariableDirectionCalculator.ResolveDirection,
         topLevelAtoms: List<ResolvedAtom>
     ) {
-        val resultType = resultTypeResolver.findResultType(c, variableWithConstraints, direction)
         val variable = variableWithConstraints.typeVariable
-        val resolvedAtom = findResolvedAtomBy(variable, topLevelAtoms) ?: topLevelAtoms.firstOrNull()
+        val resolvedAtom = findResolvedAtomByOrFirst(variable, topLevelAtoms)
+        val expectedTypeConstraintsByOwnAtom =
+            resolutionTypeSystemContext.getExpectedTypeConstraintsByOwnAtom(resolvedAtom, variableWithConstraints)
+        val resultType = resultTypeResolver.findResultType(c, variableWithConstraints, direction, expectedTypeConstraintsByOwnAtom)
+
         c.fixVariable(variable, resultType, FixVariableConstraintPositionImpl(variable, resolvedAtom))
     }
 
@@ -311,7 +318,7 @@ class KotlinConstraintSystemCompleter(
         diagnosticsHolder: KotlinDiagnosticsHolder
     ) {
         val typeVariable = variableWithConstraints.typeVariable
-        val resolvedAtom = findResolvedAtomBy(typeVariable, topLevelAtoms) ?: topLevelAtoms.firstOrNull()
+        val resolvedAtom = findResolvedAtomByOrFirst(typeVariable, topLevelAtoms)
 
         if (resolvedAtom != null) {
             c.addError(NotEnoughInformationForTypeParameterImpl(typeVariable, resolvedAtom))
@@ -416,7 +423,7 @@ class KotlinConstraintSystemCompleter(
             return notAnalyzedArguments
         }
 
-        fun findResolvedAtomBy(typeVariable: TypeVariableMarker, topLevelAtoms: List<ResolvedAtom>): ResolvedAtom? {
+        private fun findResolvedAtomBy(typeVariable: TypeVariableMarker, topLevelAtoms: List<ResolvedAtom>): ResolvedAtom? {
             fun ResolvedAtom.check(): ResolvedAtom? {
                 val suitableCall = when (this) {
                     is ResolvedCallAtom -> typeVariable in freshVariablesSubstitutor.freshVariables
@@ -442,5 +449,8 @@ class KotlinConstraintSystemCompleter(
 
             return null
         }
+
+        fun findResolvedAtomByOrFirst(typeVariable: TypeVariableMarker, topLevelAtoms: List<ResolvedAtom>) =
+            findResolvedAtomBy(typeVariable, topLevelAtoms) ?: topLevelAtoms.firstOrNull()
     }
 }

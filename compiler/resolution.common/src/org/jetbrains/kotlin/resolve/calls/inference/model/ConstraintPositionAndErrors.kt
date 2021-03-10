@@ -18,7 +18,11 @@ abstract class ExplicitTypeParameterConstraintPosition<T>(val typeArgument: T) :
     override fun toString(): String = "TypeParameter $typeArgument"
 }
 
-abstract class ExpectedTypeConstraintPosition<T>(val topLevelCall: T) : ConstraintPosition(), OnlyInputTypeConstraintPosition {
+abstract class BaseExpectedTypeConstraintPosition<T>(open val topLevelCall: T) : ConstraintPosition()
+
+abstract class ExpectedTypeConstraintPosition<T>(override val topLevelCall: T) :
+    BaseExpectedTypeConstraintPosition<T>(topLevelCall),
+    OnlyInputTypeConstraintPosition {
     override fun toString(): String = "ExpectedType for call $topLevelCall"
 }
 
@@ -57,7 +61,8 @@ abstract class LambdaArgumentConstraintPosition<T>(val lambda: T) : ConstraintPo
     }
 }
 
-abstract class DelegatedPropertyConstraintPosition<T>(val topLevelCall: T) : ConstraintPosition() {
+abstract class DelegatedPropertyConstraintPosition<T>(override val topLevelCall: T) :
+    BaseExpectedTypeConstraintPosition<T>(topLevelCall) {
     override fun toString(): String = "Constraint from call $topLevelCall for delegated property"
 }
 

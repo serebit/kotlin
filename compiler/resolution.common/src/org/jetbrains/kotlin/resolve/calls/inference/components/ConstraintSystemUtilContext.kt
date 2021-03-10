@@ -6,10 +6,12 @@
 package org.jetbrains.kotlin.resolve.calls.inference.components
 
 import org.jetbrains.kotlin.resolve.calls.inference.model.ArgumentConstraintPosition
+import org.jetbrains.kotlin.resolve.calls.inference.model.Constraint
 import org.jetbrains.kotlin.resolve.calls.inference.model.FixVariableConstraintPosition
+import org.jetbrains.kotlin.resolve.calls.inference.model.VariableWithConstraints
 import org.jetbrains.kotlin.resolve.calls.model.PostponedAtomWithRevisableExpectedType
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedAtomMarker
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
-import org.jetbrains.kotlin.types.model.TypeConstructorMarker
 import org.jetbrains.kotlin.types.model.TypeVariableMarker
 
 /*
@@ -37,4 +39,9 @@ interface ConstraintSystemUtilContext {
         argument: PostponedAtomWithRevisableExpectedType,
         index: Int
     ): TypeVariableMarker
+
+    fun getExpectedTypeConstraintsByOwnAtom(
+        resolvedAtom: ResolvedAtomMarker?,
+        variableWithConstraints: VariableWithConstraints
+    ): List<Constraint>
 }

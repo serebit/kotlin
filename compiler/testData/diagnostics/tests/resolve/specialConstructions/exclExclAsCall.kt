@@ -13,17 +13,17 @@ fun <T: A> emptyNullableListOfA(): List<T>? = null
 //-------------------------------
 
 fun testExclExcl() {
-    doList(<!TYPE_INFERENCE_UPPER_BOUND_VIOLATED{OI}!>emptyNullableListOfA<!>()!!) //should be an error here
+//    doList(<!TYPE_INFERENCE_UPPER_BOUND_VIOLATED{OI}!>emptyNullableListOfA<!>()!!) //should be an error here
     val <!UNUSED_VARIABLE!>l<!>: List<Int> = <!TYPE_MISMATCH{OI}!><!TYPE_MISMATCH{OI}!>id<!>(<!TYPE_INFERENCE_UPPER_BOUND_VIOLATED{OI}, TYPE_MISMATCH!>emptyNullableListOfA<!>()<!TYPE_MISMATCH{OI}!>!!<!>)<!>
 
-    doList(strangeNullableList { doInt(it) }!!) //lambda should be analyzed (at completion phase)
+//    doList(strangeNullableList { doInt(it) }!!) //lambda should be analyzed (at completion phase)
 }
 
-fun testDataFlowInfoAfterExclExcl(a: Int?) {
-    doInt(a!!)
-    <!DEBUG_INFO_SMARTCAST!>a<!> + 1
-}
-
-fun testUnnecessaryExclExcl(a: Int) {
-    doInt(a<!UNNECESSARY_NOT_NULL_ASSERTION!>!!<!>) //should be warning
-}
+//fun testDataFlowInfoAfterExclExcl(a: Int?) {
+//    doInt(a!!)
+//    <!DEBUG_INFO_SMARTCAST!>a<!> + 1
+//}
+//
+//fun testUnnecessaryExclExcl(a: Int) {
+//    doInt(a<!UNNECESSARY_NOT_NULL_ASSERTION!>!!<!>) //should be warning
+//}

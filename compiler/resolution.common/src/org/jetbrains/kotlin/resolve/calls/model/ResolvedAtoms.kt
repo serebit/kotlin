@@ -7,6 +7,8 @@ package org.jetbrains.kotlin.resolve.calls.model
 
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 
+interface ResolvedAtomMarker
+
 interface PostponedResolvedAtomMarker {
     val inputTypes: Collection<KotlinTypeMarker>
     val outputType: KotlinTypeMarker?

@@ -26,6 +26,8 @@ interface KotlinCall : ResolutionAtom {
     val externalArgument: KotlinCallArgument?
 
     val isForImplicitInvoke: Boolean
+
+    fun isEqualByCallElement(other: Any?): Boolean
 }
 
 private fun SimpleKotlinCallArgument.checkReceiverInvariants() {
