@@ -390,15 +390,42 @@ class BodyResolveContext(
         }
     }
 
-    inline fun <T> forSimpleFunctionBody(
-        simpleFunction: FirSimpleFunction,
+    inline fun <T> forFunctionBody(
+        function: FirFunction<*>,
         holder: SessionHolder,
         crossinline f: () -> T
     ): T {
         return withTowerDataCleanup {
             addLocalScope(FirLocalScope())
-            val receiverTypeRef = simpleFunction.receiverTypeRef
-            withLabelAndReceiverType(simpleFunction.name, simpleFunction, receiverTypeRef?.coneType, holder, f)
+            if (function is FirSimpleFunction) {
+                val receiverTypeRef = function.receiverTypeRef
+                withLabelAndReceiverType(function.name, function, receiverTypeRef?.coneType, holder, f)
+            } else {
+                f()
+            }
+        }
+    }
+
+    inline fun <T> forConstructorBody(
+        constructor: FirConstructor,
+        parametersScope: FirLocalScope?,
+        crossinline f: () -> T
+    ): T {
+        return if (constructor.isPrimary) {
+            /*
+             * Primary constructor may have body only if class delegates implementation to some property
+             *   In it's body we don't have this receiver for building class, so we need to use
+             *   special towerDataContext
+             */
+            withTowerDataMode(FirTowerDataMode.CONSTRUCTOR_HEADER) {
+                parametersScope?.let { addLocalScope(it) }
+                f()
+            }
+        } else {
+            withTowerDataCleanup {
+                parametersScope?.let { addLocalScope(it) }
+                f()
+            }
         }
     }
 
@@ -589,37 +616,13 @@ class BodyResolveContext(
     }
 
     inline fun <T> forDelegatedConstructor(
-        constructor: FirConstructor,
-        parametersScope: FirLocalScope? = buildConstructorParametersScope(constructor),
+        parametersScope: FirLocalScope?,
         crossinline f: () -> T
     ): T {
         if (parametersScope == null) return f()
         return withTowerDataCleanup {
             addLocalScope(parametersScope)
             f()
-        }
-    }
-
-    inline fun <T> forConstructorBody(
-        constructor: FirConstructor,
-        parametersScope: FirLocalScope? = buildConstructorParametersScope(constructor),
-        crossinline f: () -> T
-    ): T {
-        return if (constructor.isPrimary) {
-            /*
-             * Primary constructor may have body only if class delegates implementation to some property
-             *   In it's body we don't have this receiver for building class, so we need to use
-             *   special towerDataContext
-             */
-            withTowerDataMode(FirTowerDataMode.CONSTRUCTOR_HEADER) {
-                parametersScope?.let { addLocalScope(it) }
-                f()
-            }
-        } else {
-            withTowerDataCleanup {
-                parametersScope?.let { addLocalScope(it) }
-                f()
-            }
         }
     }
 

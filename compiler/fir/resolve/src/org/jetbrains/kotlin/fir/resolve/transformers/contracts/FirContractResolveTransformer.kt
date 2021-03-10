@@ -67,7 +67,7 @@ open class FirContractResolveTransformer(
             }
             @Suppress("UNCHECKED_CAST")
             return context.withSimpleFunction(simpleFunction) {
-                context.forSimpleFunctionBody(simpleFunction, components) {
+                context.forFunctionBody(simpleFunction, components) {
                     transformContractDescriptionOwner(simpleFunction)
                 }
             }
