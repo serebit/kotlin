@@ -459,19 +459,19 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
         }
 
         doTransformTypeParameters(simpleFunction)
-        // TODO: I think it worth creating something like runAllPhasesForLocalFunction
-        context.withTypeParametersOf(simpleFunction) {
-            val containingDeclaration = context.containerIfAny
+
+        val containingDeclaration = context.containerIfAny
+        return context.withSimpleFunction(simpleFunction) {
+            // TODO: I think it worth creating something like runAllPhasesForLocalFunction
             if (containingDeclaration != null && containingDeclaration !is FirClass<*>) {
                 // For class members everything should be already prepared
                 prepareSignatureForBodyResolve(simpleFunction)
                 simpleFunction.transformStatus(this, simpleFunction.resolveStatus().mode())
             }
-        }
-
-        return withFullBodyResolve {
-            context.withSimpleFunction(simpleFunction, components) {
-                transformFunctionWithGivenSignature(simpleFunction, ResolutionMode.ContextIndependent)
+            context.forSimpleFunctionBody(simpleFunction, components) {
+                withFullBodyResolve {
+                    transformFunctionWithGivenSignature(simpleFunction, ResolutionMode.ContextIndependent)
+                }
             }
         }
     }

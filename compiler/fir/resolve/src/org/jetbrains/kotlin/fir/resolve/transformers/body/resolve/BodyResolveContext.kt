@@ -379,7 +379,6 @@ class BodyResolveContext(
 
     inline fun <T> withSimpleFunction(
         simpleFunction: FirSimpleFunction,
-        holder: SessionHolder,
         crossinline f: () -> T
     ): T {
         if (containerIfAny !is FirClass<*>) {
@@ -387,13 +386,19 @@ class BodyResolveContext(
         }
 
         return withTypeParametersOf(simpleFunction) {
-            withTowerDataCleanup {
-                addLocalScope(FirLocalScope())
-                val receiverTypeRef = simpleFunction.receiverTypeRef
-                withContainer(simpleFunction) {
-                    withLabelAndReceiverType(simpleFunction.name, simpleFunction, receiverTypeRef?.coneType, holder, f)
-                }
-            }
+            withContainer(simpleFunction, f)
+        }
+    }
+
+    inline fun <T> forSimpleFunctionBody(
+        simpleFunction: FirSimpleFunction,
+        holder: SessionHolder,
+        crossinline f: () -> T
+    ): T {
+        return withTowerDataCleanup {
+            addLocalScope(FirLocalScope())
+            val receiverTypeRef = simpleFunction.receiverTypeRef
+            withLabelAndReceiverType(simpleFunction.name, simpleFunction, receiverTypeRef?.coneType, holder, f)
         }
     }
 
