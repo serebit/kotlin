@@ -13,7 +13,8 @@ dependencies {
     implementation(project(":kotlin-ide:core"))
     implementation(project(":kotlin-ide:frontend-independent"))
     implementation(project(":kotlin-ide:j2k:old"))
-    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("plugins/java/lib/java-impl"))
+    implementation(intellijPluginDep("plugins/java/lib/java_resources_en"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }

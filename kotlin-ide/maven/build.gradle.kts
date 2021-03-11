@@ -18,11 +18,13 @@ dependencies {
     implementation(project(":kotlin-ide:jvm"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
-    implementation(intellijPluginDep("platform-api"))
-    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("lib/platform-api"))
+    implementation(intellijPluginDep("lib/resources_en"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
-    implementation(intellijPluginDep("java"))
-    implementation(intellijPluginDep("maven"))
+    implementation(intellijPluginDep("plugins/java/lib/java-impl"))
+    implementation(intellijPluginDep("plugins/java/lib/java_resources_en"))
+    implementation(intellijPluginDep("plugins/maven/lib/maven"))
+    implementation(intellijPluginDep("plugins/maven/lib/resources_en"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

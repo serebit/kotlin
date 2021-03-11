@@ -12,9 +12,9 @@ dependencies {
     implementation(project(":kotlin-ide:core"))
     implementation(project(":kotlin-ide:jps:jps-common"))
     implementation(project(":kotlin-ide:gradle:gradle-idea"))
-    implementation(intellijPluginDep("platform-api"))
-    implementation(intellijPluginDep("resources_en"))
-    implementation(intellijPluginDep("gradle"))
+    implementation(intellijPluginDep("lib/platform-api"))
+    implementation(intellijPluginDep("lib/resources_en"))
+    implementation(intellijPluginDep("plugins/gradle/lib/gradle-common"))
 }
 
 sourceSets {

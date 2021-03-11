@@ -9,12 +9,17 @@ plugins {
 
 dependencies {
     
-    implementation(intellijPluginDep("platform-impl"))
-    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("lib/platform-impl"))
+    implementation(intellijPluginDep("lib/resources_en"))
     implementation(intellijPluginDep("intellij-core"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
-    implementation(intellijPluginDep("java"))
-    implementation(intellijPluginDep("DatabaseTools"))
+    implementation(intellijPluginDep("plugins/java/lib/java-api"))
+    implementation(intellijPluginDep("plugins/java/lib/java_resources_en"))
+    implementation(intellijPluginDep("plugins/java/lib/java-impl"))
+    implementation(intellijPluginDep("plugins/java/lib/aether-dependency-resolver"))
+    implementation(intellijPluginDep("plugins/java/lib/resources_en"))
+    implementation(intellijPluginDep("plugins/DatabaseTools/lib/aether-dependency-resolver"))
+    implementation(intellijPluginDep("plugins/DatabaseTools/lib/resources_en"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

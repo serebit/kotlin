@@ -20,12 +20,14 @@ dependencies {
     implementation(project(":kotlin-ide:compiler-plugins:sam-with-receiver"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
-    implementation(intellijPluginDep("platform-impl"))
-    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("lib/platform-impl"))
+    implementation(intellijPluginDep("lib/resources_en"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
-    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("plugins/java/lib/java-api"))
+    implementation(intellijPluginDep("plugins/java/lib/java_resources_en"))
     implementation(intellijPluginDep("intellij-core"))
-    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("lib/platform-api"))
+    implementation(intellijPluginDep("plugins/java/lib/java-impl"))
 }
 
 //sourceSets {

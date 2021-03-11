@@ -14,12 +14,14 @@ dependencies {
     implementation(project(":kotlin-ide:frontend-independent"))
     implementation(project(":kotlin-ide:jvm-debugger:eval4j"))
     implementation(project(":kotlin-ide:jvm-debugger:util"))
-    implementation(intellijPluginDep("platform-impl"))
-    implementation(intellijPluginDep("resources_en"))
-    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("lib/platform-impl"))
+    implementation(intellijPluginDep("lib/resources_en"))
+    implementation(intellijPluginDep("plugins/java/lib/java-api"))
+    implementation(intellijPluginDep("plugins/java/lib/java_resources_en"))
+    implementation(intellijPluginDep("plugins/java/lib/java-impl"))
     implementation(intellijPluginDep("intellij-core"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
-    implementation(intellijPluginDep("platform-core-ui"))
+    implementation(intellijPluginDep("lib/platform-core-ui"))
 }
 
 sourceSets {

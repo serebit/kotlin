@@ -21,11 +21,11 @@ dependencies {
     implementation(project(":kotlin-ide:jvm"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
-    implementation(intellijPluginDep("platform-impl"))
-    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("lib/platform-impl"))
+    implementation(intellijPluginDep("lib/resources_en"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
-    implementation(intellijPluginDep("intellij-dvcs"))
-    implementation(intellijPluginDep("gradle"))
+    implementation(intellijPluginDep("lib/intellij-dvcs"))
+    implementation(intellijPluginDep("plugins/gradle/lib/gradle-common"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

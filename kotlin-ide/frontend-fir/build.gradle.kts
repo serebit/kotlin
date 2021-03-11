@@ -17,14 +17,16 @@ dependencies {
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
     implementation(project(":kotlin-ide:common"))
-    implementation(intellijPluginDep("platform-api"))
-    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("lib/platform-api"))
+    implementation(intellijPluginDep("lib/resources_en"))
     implementation(intellijPluginDep("intellij-core"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
-    implementation(intellijPluginDep("platform-util-ex"))
-    implementation(intellijPluginDep("java"))
-    implementation(intellijPluginDep("intellij-xml"))
-    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("lib/platform-util-ex"))
+    implementation(intellijPluginDep("plugins/java/lib/java-api"))
+    implementation(intellijPluginDep("plugins/java/lib/java_resources_en"))
+    implementation(intellijPluginDep("lib/intellij-xml"))
+    implementation(intellijPluginDep("plugins/java/lib/java-impl"))
+    implementation(intellijPluginDep("lib/platform-impl"))
 }
 
 sourceSets {

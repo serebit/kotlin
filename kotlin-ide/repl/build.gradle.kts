@@ -13,14 +13,15 @@ dependencies {
     implementation(project(":kotlin-ide:frontend-independent"))
     implementation(project(":kotlin-ide:idea"))
     implementation(project(":kotlin-ide:common"))
-    implementation(intellijPluginDep("platform-api"))
-    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("lib/platform-api"))
+    implementation(intellijPluginDep("lib/resources_en"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
-    implementation(intellijPluginDep("platform-ide-util-io"))
-    implementation(intellijPluginDep("platform-impl"))
-    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("lib/platform-ide-util-io"))
+    implementation(intellijPluginDep("lib/platform-impl"))
+    implementation(intellijPluginDep("plugins/java/lib/java-api"))
+    implementation(intellijPluginDep("plugins/java/lib/java_resources_en"))
     implementation(intellijPluginDep("intellij-core"))
-    implementation(intellijPluginDep("platform-core-ui"))
+    implementation(intellijPluginDep("lib/platform-core-ui"))
 }
 
 sourceSets {

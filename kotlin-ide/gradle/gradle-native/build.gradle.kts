@@ -16,10 +16,11 @@ dependencies {
     implementation(project(":kotlin-ide:idea"))
     implementation(project(":kotlin-ide:jvm"))
     implementation(project(":kotlin-ide:gradle:gradle-idea"))
-    implementation(intellijPluginDep("platform-api"))
-    implementation(intellijPluginDep("resources_en"))
-    implementation(intellijPluginDep("gradle-java"))
-    implementation(intellijPluginDep("testFramework"))
+    implementation(intellijPluginDep("lib/platform-api"))
+    implementation(intellijPluginDep("lib/resources_en"))
+    implementation(intellijPluginDep("plugins/gradle-java/lib/gradle-java"))
+    implementation(intellijPluginDep("plugins/gradle-java/lib/resources_en"))
+    implementation(intellijPluginDep("lib/testFramework"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

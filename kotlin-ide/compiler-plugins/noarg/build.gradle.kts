@@ -17,10 +17,11 @@ dependencies {
     implementation(project(":kotlin-ide:compiler-plugins:annotation-based-compiler-support"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
-    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("plugins/java/lib/java-impl"))
+    implementation(intellijPluginDep("plugins/java/lib/java_resources_en"))
     implementation(intellijPluginDep("intellij-core"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
-    implementation(intellijPluginDep("gradle"))
+    implementation(intellijPluginDep("plugins/gradle/lib/gradle-common"))
     implementation(project(":kotlin-ide:frontend-independent"))
 }
 
