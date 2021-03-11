@@ -18,8 +18,7 @@ dependencies {
     implementation(project(":kotlin-ide:j2k:services"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
-    implementation(intellijPluginDep("plugins/java/lib/java-impl"))
-    implementation(intellijPluginDep("plugins/java/lib/java_resources_en"))
+    implementation(intellijPluginDep("java"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

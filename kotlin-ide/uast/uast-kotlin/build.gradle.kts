@@ -14,10 +14,8 @@ dependencies {
     implementation(project(":kotlin-ide:frontend-independent"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
-    implementation(intellijPluginDep("plugins/java/lib/java-api"))
-    implementation(intellijPluginDep("plugins/java/lib/java_resources_en"))
-    implementation(intellijPluginDep("lib/uast-tests"))
-    implementation(intellijPluginDep("plugins/java/lib/java-impl"))
+    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("uast-tests"))
     implementation(intellijPluginDep("intellij-core"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
 }

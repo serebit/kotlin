@@ -9,12 +9,11 @@ plugins {
 
 dependencies {
     
-    implementation(intellijPluginDep("lib/platform-impl"))
-    implementation(intellijPluginDep("lib/resources_en"))
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("resources_en"))
     implementation(intellijPluginDep("intellij-core"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
-    implementation(intellijPluginDep("plugins/java/lib/java-api"))
-    implementation(intellijPluginDep("plugins/java/lib/java_resources_en"))
+    implementation(intellijPluginDep("java"))
     implementation(project(":kotlin-ide:frontend-independent"))
 }
 

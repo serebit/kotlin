@@ -17,12 +17,11 @@ dependencies {
     implementation(project(":kotlin-ide:jvm-debugger:coroutines"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
-    implementation(intellijPluginDep("lib/platform-api"))
-    implementation(intellijPluginDep("lib/resources_en"))
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("resources_en"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
-    implementation(intellijPluginDep("lib/intellij-dvcs"))
-    implementation(intellijPluginDep("plugins/java/lib/java-api"))
-    implementation(intellijPluginDep("plugins/java/lib/java_resources_en"))
+    implementation(intellijPluginDep("intellij-dvcs"))
+    implementation(intellijPluginDep("java"))
     implementation(intellijPluginDep("intellij-core"))
 }
 

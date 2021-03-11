@@ -16,10 +16,9 @@ dependencies {
     implementation(project(":kotlin-ide:gradle:gradle-idea"))
     implementation(project(":kotlin-ide:compiler-plugins:annotation-based-compiler-support"))
     implementation(project(":kotlin-ide:test-framework"))
-    implementation(intellijPluginDep("lib/platform-api"))
-    implementation(intellijPluginDep("lib/resources_en"))
-    implementation(intellijPluginDep("plugins/gradle/lib/gradle"))
-    implementation(intellijPluginDep("plugins/gradle/lib/resources_en"))
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("gradle"))
     implementation(project(":kotlin-ide:frontend-independent"))
 }
 

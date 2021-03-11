@@ -9,7 +9,7 @@ plugins {
 
 dependencies {
     
-    implementation(intellijPluginDep("lib/util"))
+    implementation(intellijPluginDep("util"))
     implementation(intellijPluginDep("intellij-core"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
 }

@@ -9,8 +9,7 @@ plugins {
 
 dependencies {
     
-    implementation(intellijPluginDep("plugins/gradle/lib/gradle-tooling-extension-api"))
-    implementation(intellijPluginDep("plugins/gradle/lib/gradle-tooling-extension-impl"))
+    implementation(intellijPluginDep("gradle"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

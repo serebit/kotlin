@@ -9,11 +9,11 @@ plugins {
 
 dependencies {
     
-    implementation(intellijPluginDep("lib/platform-api"))
-    implementation(intellijPluginDep("lib/resources_en"))
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("resources_en"))
     implementation(intellijPluginDep("intellij-core"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
-    implementation(intellijPluginDep("lib/jps-model"))
+    implementation(intellijPluginDep("jps-model"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

@@ -12,16 +12,14 @@ dependencies {
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:frontend-independent"))
     implementation(project(":kotlin-ide:jps:jps-common"))
-    implementation(intellijPluginDep("lib/platform-statistics"))
-    implementation(intellijPluginDep("plugins/java/lib/java-api"))
-    implementation(intellijPluginDep("plugins/java/lib/java_resources_en"))
-    implementation(intellijPluginDep("plugins/java/lib/java-impl"))
+    implementation(intellijPluginDep("platform-statistics"))
+    implementation(intellijPluginDep("java"))
     implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
-    implementation(intellijPluginDep("lib/platform-api"))
-    implementation(intellijPluginDep("lib/resources_en"))
-    implementation(intellijPluginDep("lib/platform-impl"))
-    implementation(intellijPluginDep("lib/intellij-xml"))
-    implementation(intellijPluginDep("lib/platform-core-ui"))
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("intellij-xml"))
+    implementation(intellijPluginDep("platform-core-ui"))
 }
 
 sourceSets {
