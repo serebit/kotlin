@@ -60,12 +60,6 @@ interface IrBuilderExtension {
         return throwMissedFieldExceptionFunc != null && throwMissedFieldExceptionArrayFunc != null
     }
 
-    fun ClassDescriptor.referenceMethod(methodName: String, predicate: (IrSimpleFunction) -> Boolean = { true }): IrFunctionSymbol {
-        val irClass = compilerContext.referenceClass(fqNameSafe)?.owner ?: error("Couldn't load class $this")
-        val simpleFunctions = irClass.declarations.filterIsInstance<IrSimpleFunction>()
-        return simpleFunctions.filter { it.name.asString() == methodName }.single { predicate(it) }.symbol
-    }
-
     fun IrClass.contributeFunction(descriptor: FunctionDescriptor, ignoreWhenMissing: Boolean = false, bodyGen: IrBlockBodyBuilder.(IrFunction) -> Unit) {
         val f: IrSimpleFunction = searchForDeclaration(descriptor)
             ?: (if (ignoreWhenMissing) return else compilerContext.symbolTable.referenceSimpleFunction(descriptor).owner)

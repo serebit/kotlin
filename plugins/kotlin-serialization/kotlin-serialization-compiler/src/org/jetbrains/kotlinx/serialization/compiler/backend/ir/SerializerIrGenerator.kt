@@ -256,16 +256,6 @@ open class SerializerIrGenerator(
         val objectToSerialize = saveFunc.valueParameters[1]
         val localOutput = irTemporary(call, "output")
 
-        fun SerializableProperty.irGet(): IrExpression {
-            val ownerType = objectToSerialize.symbol.owner.type
-            return getProperty(
-                irGet(
-                    type = ownerType,
-                    variable = objectToSerialize.symbol
-                ), getIrPropertyFrom(serializableIrClass)
-            )
-        }
-
         // Ignore comparing to default values of properties from superclass,
         // because we do not have access to their fields (and initializers), if superclass is in another module.
         // In future, IR analogue of JVM's write$Self should be implemented.

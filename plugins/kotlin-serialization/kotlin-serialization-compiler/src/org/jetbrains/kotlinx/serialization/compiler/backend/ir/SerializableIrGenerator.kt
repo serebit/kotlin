@@ -319,18 +319,8 @@ class SerializableIrGenerator(
                             irGet(writeSelfF.valueParameters[3 + it])
                         }!!
                     }
-                    // todo: generic type args
                     +irInvoke(null, superWriteSelfF.symbol, typeArgsForParent.map { it.type.toIrType() }, args + parentWriteSelfSerializers)
                 }
-            }
-            fun SerializableProperty.irGet(): IrExpression {
-                val ownerType = objectToSerialize.symbol.owner.type
-                return this@contributeFunction.getProperty(
-                    this@contributeFunction.irGet(
-                        type = ownerType,
-                        variable = objectToSerialize.symbol
-                    ), getIrPropertyFrom(irClass)
-                )
             }
 
             serializeAllProperties(
