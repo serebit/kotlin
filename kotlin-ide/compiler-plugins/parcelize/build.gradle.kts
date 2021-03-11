@@ -16,13 +16,13 @@ dependencies {
     implementation(project(":kotlin-ide:compiler-plugins:scripting"))
     implementation(project(":kotlin-ide:gradle:gradle-tooling"))
     implementation(project(":kotlin-ide:common"))
-    implementation(intellijPluginDep("platform-api"))
-    implementation(intellijPluginDep("resources_en"))
-    implementation(intellijPluginDep("intellij-core"))
-    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijDep(), { includeJars("platform-api") })
+    implementation(intellijDep(), { includeJars("resources_en") })
+    implementation(intellijDep(), { includeJars("intellij-core") })
+    implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
     implementation(intellijPluginDep("gradle"))
     implementation(intellijPluginDep("java"))
-    implementation(intellijPluginDep("platform-objectSerializer-annotations"))
+    implementation(intellijDep(), { includeJars("platform-objectSerializer-annotations") })
     implementation(project(":kotlin-ide:frontend-independent"))
 }
 

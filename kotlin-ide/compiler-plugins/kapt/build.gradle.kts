@@ -14,8 +14,8 @@ dependencies {
     implementation(project(":kotlin-ide:idea"))
     implementation(project(":kotlin-ide:gradle:gradle-idea"))
     implementation(project(":kotlin-ide:gradle:gradle-tooling"))
-    implementation(intellijPluginDep("platform-api"))
-    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijDep(), { includeJars("platform-api") })
+    implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijPluginDep("gradle"))
     implementation(project(":kotlin-ide:frontend-independent"))
 }

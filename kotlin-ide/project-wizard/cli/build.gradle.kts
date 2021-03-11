@@ -11,7 +11,7 @@ dependencies {
     
     implementation(project(":kotlin-ide:project-wizard:core"))
     implementation(project(":kotlin-ide:tests-common"))
-    implementation(intellijPluginDep("testFramework"))
+    implementation(intellijDep(), { includeJars("testFramework") })
 }
 
 sourceSets {

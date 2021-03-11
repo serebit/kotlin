@@ -13,10 +13,10 @@ dependencies {
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:frontend-independent"))
     implementation(intellijPluginDep("git4idea"))
-    implementation(intellijPluginDep("platform-api"))
-    implementation(intellijPluginDep("resources_en"))
-    implementation(intellijPluginDep("intellij-core"))
-    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijDep(), { includeJars("platform-api") })
+    implementation(intellijDep(), { includeJars("resources_en") })
+    implementation(intellijDep(), { includeJars("intellij-core") })
+    implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
 }
 
 sourceSets {

@@ -9,9 +9,9 @@ plugins {
 
 dependencies {
     
-    implementation(intellijPluginDep("util"))
-    implementation(intellijPluginDep("intellij-core"))
-    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijDep(), { includeJars("util") })
+    implementation(intellijDep(), { includeJars("intellij-core") })
+    implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
 }
 
 sourceSets {

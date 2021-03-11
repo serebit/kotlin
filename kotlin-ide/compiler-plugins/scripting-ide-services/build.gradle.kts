@@ -10,13 +10,13 @@ plugins {
 dependencies {
     
     implementation(project(":kotlin-ide:common"))
-    implementation(intellijPluginDep("platform-impl"))
-    implementation(intellijPluginDep("resources_en"))
-    implementation(intellijPluginDep("intellij-core"))
-    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
-    implementation(intellijPluginDep("util"))
+    implementation(intellijDep(), { includeJars("platform-impl") })
+    implementation(intellijDep(), { includeJars("resources_en") })
+    implementation(intellijDep(), { includeJars("intellij-core") })
+    implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
+    implementation(intellijDep(), { includeJars("util") })
     implementation(intellijPluginDep("java"))
-    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijDep(), { includeJars("platform-api") })
     implementation(project(":kotlin-ide:frontend-independent"))
 }
 

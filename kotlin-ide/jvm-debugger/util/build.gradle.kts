@@ -13,10 +13,10 @@ dependencies {
     implementation(project(":kotlin-ide:core"))
     implementation(project(":kotlin-ide:frontend-independent"))
     implementation(project(":kotlin-ide:jvm-debugger:eval4j"))
-    implementation(intellijPluginDep("platform-impl"))
-    implementation(intellijPluginDep("resources_en"))
-    implementation(intellijPluginDep("intellij-core"))
-    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijDep(), { includeJars("platform-impl") })
+    implementation(intellijDep(), { includeJars("resources_en") })
+    implementation(intellijDep(), { includeJars("intellij-core") })
+    implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
     implementation(intellijPluginDep("java"))
 }
 

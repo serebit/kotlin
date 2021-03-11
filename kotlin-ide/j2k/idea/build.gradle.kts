@@ -14,7 +14,7 @@ dependencies {
     implementation(project(":kotlin-ide:frontend-independent"))
     implementation(project(":kotlin-ide:j2k:old"))
     implementation(intellijPluginDep("java"))
-    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

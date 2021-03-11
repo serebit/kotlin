@@ -21,13 +21,13 @@ dependencies {
     implementation(project(":kotlin-ide:gradle:gradle-idea"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
-    implementation(intellijPluginDep("platform-impl"))
-    implementation(intellijPluginDep("resources_en"))
-    implementation(intellijPluginDep("intellij-dvcs"))
+    implementation(intellijDep(), { includeJars("platform-impl") })
+    implementation(intellijDep(), { includeJars("resources_en") })
+    implementation(intellijDep(), { includeJars("intellij-dvcs") })
     implementation(intellijPluginDep("java"))
     implementation(intellijPluginDep("maven"))
     implementation(intellijPluginDep("gradle"))
-    implementation(intellijPluginDep("platform-core-ui"))
+    implementation(intellijDep(), { includeJars("platform-core-ui") })
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

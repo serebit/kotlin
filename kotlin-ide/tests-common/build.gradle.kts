@@ -11,12 +11,12 @@ dependencies {
     
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:test-framework"))
-    implementation(intellijPluginDep("util"))
-    implementation(intellijPluginDep("intellij-core"))
-    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
-    implementation(intellijPluginDep("platform-api"))
-    implementation(intellijPluginDep("resources_en"))
-    implementation(intellijPluginDep("bootstrap"))
+    implementation(intellijDep(), { includeJars("util") })
+    implementation(intellijDep(), { includeJars("intellij-core") })
+    implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
+    implementation(intellijDep(), { includeJars("platform-api") })
+    implementation(intellijDep(), { includeJars("resources_en") })
+    implementation(intellijDep(), { includeJars("bootstrap") })
     implementation(intellijPluginDep("java"))
 }
 
