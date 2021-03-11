@@ -23,11 +23,11 @@ dependencies {
     
 }
 
-//sourceSets {
-//    "main" {
-//        projectDefault()
-//        java.srcDir("../idea-analysis/src")
-//        resources.srcDir("../idea-analysis/resources")
-//    }
-//    "test" {}
-//}
+sourceSets {
+    "main" {
+        java.srcDir("../../tools/kotlin-compiler-classpath/src")
+    }
+    "test" {
+        
+    }
+}

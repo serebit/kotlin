@@ -93,11 +93,18 @@ dependencies {
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 
-//sourceSets {
-//    "main" {
-//        projectDefault()
-//        java.srcDir("../idea-analysis/src")
-//        resources.srcDir("../idea-analysis/resources")
-//    }
-//    "test" {}
-//}
+sourceSets {
+    "main" {
+        resources.srcDir("../completion/resources")
+        java.srcDir("../completion/src")
+        java.srcDir("src")
+        resources.srcDir("resources")
+        resources.srcDir("resources-en")
+        java.srcDir("../live-templates/src")
+    }
+    "test" {
+        java.srcDir("../completion/test")
+        java.srcDir("test")
+        java.srcDir("../live-templates/test")
+    }
+}

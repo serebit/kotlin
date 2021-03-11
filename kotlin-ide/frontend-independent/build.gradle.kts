@@ -24,11 +24,12 @@ dependencies {
     implementation(project(":kotlin-ide:tests-common"))
 }
 
-//sourceSets {
-//    "main" {
-//        projectDefault()
-//        java.srcDir("../idea-analysis/src")
-//        resources.srcDir("../idea-analysis/resources")
-//    }
-//    "test" {}
-//}
+sourceSets {
+    "main" {
+        resources.srcDir("resources-en")
+        java.srcDir("src")
+    }
+    "test" {
+        java.srcDir("test")
+    }
+}

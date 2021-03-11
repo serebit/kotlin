@@ -29,11 +29,12 @@ dependencies {
     implementation(project(":kotlin-ide:frontend-independent"))
 }
 
-//sourceSets {
-//    "main" {
-//        projectDefault()
-//        java.srcDir("../idea-analysis/src")
-//        resources.srcDir("../idea-analysis/resources")
-//    }
-//    "test" {}
-//}
+sourceSets {
+    "main" {
+        resources.srcDir("resources")
+        java.srcDir("src")
+    }
+    "test" {
+        java.srcDir("test")
+    }
+}

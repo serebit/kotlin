@@ -42,11 +42,14 @@ dependencies {
     
 }
 
-//sourceSets {
-//    "main" {
-//        projectDefault()
-//        java.srcDir("../idea-analysis/src")
-//        resources.srcDir("../idea-analysis/resources")
-//    }
-//    "test" {}
-//}
+sourceSets {
+    "main" {
+        java.srcDir("../analysis/src")
+        resources.srcDir("../analysis/resources")
+        java.srcDir("src")
+        resources.srcDir("resources")
+    }
+    "test" {
+        
+    }
+}

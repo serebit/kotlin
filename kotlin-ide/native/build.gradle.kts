@@ -28,11 +28,13 @@ dependencies {
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 
-//sourceSets {
-//    "main" {
-//        projectDefault()
-//        java.srcDir("../idea-analysis/src")
-//        resources.srcDir("../idea-analysis/resources")
-//    }
-//    "test" {}
-//}
+sourceSets {
+    "main" {
+        java.srcDir("src")
+        java.srcDir("gen")
+        resources.srcDir("resources")
+    }
+    "test" {
+        java.srcDir("test")
+    }
+}
