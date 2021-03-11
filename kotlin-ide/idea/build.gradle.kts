@@ -56,6 +56,7 @@ dependencies {
     implementation(intellijPluginDep("copyright"))
     implementation(intellijPluginDep("properties"))
     implementation(intellijDep(), { includeJars("platform-core-ui") })
+    implementation(intellijPluginDep("completionMlRanking"))
     implementation(intellijDep(), { includeJars("idea") })
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
