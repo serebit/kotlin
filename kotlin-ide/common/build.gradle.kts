@@ -14,7 +14,6 @@ dependencies {
     implementation(intellijDep(), { includeJars("intellij-core") })
     implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
     implementation(intellijPluginDep("java"))
-    implementation(intellijPluginDep("DatabaseTools"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

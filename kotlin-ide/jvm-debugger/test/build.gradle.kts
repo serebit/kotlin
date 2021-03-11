@@ -26,7 +26,6 @@ dependencies {
     implementation(intellijDep(), { includeJars("platform-impl") })
     implementation(intellijPluginDep("java"))
     implementation(intellijPluginDep("stream-debugger"))
-    implementation(intellijPluginDep("DatabaseTools"))
 }
 
 sourceSets {
