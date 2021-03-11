@@ -9,19 +9,13 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
-    
-    
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:core"))
     implementation(project(":kotlin-ide:formatter"))
     implementation(project(":kotlin-ide:idea"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
-    
+    implementation(intellijPluginDep("java"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

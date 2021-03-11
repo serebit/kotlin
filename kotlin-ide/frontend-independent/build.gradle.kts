@@ -9,18 +9,13 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("intellij-xml"))
+    implementation(intellijPluginDep("platform-core-ui"))
     implementation(project(":kotlin-ide:tests-common"))
 }
 

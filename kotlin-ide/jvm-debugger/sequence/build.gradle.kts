@@ -9,13 +9,13 @@ plugins {
 
 dependencies {
     
-    
-    
-    
     implementation(project(":kotlin-ide:common"))
-    
-    
-    
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("intellij-core"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("stream-debugger"))
 }
 
 sourceSets {

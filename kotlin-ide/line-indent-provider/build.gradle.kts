@@ -9,10 +9,8 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("resources_en"))
 }
 
 sourceSets {

@@ -9,7 +9,6 @@ plugins {
 
 dependencies {
     
-    
     implementation(project(":kotlin-ide:resources-fir"))
     implementation(project(":kotlin-ide:fir"))
     implementation(project(":kotlin-ide:fir-low-level-api"))

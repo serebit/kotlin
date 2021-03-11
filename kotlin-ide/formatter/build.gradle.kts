@@ -9,13 +9,12 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
-    
-    
-    
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("intellij-core"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("java"))
 }
 
 sourceSets {

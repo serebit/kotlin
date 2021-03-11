@@ -9,15 +9,6 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
     implementation(project(":kotlin-ide:core"))
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:frontend-independent"))
@@ -28,30 +19,23 @@ dependencies {
     implementation(project(":kotlin-ide:jvm-debugger:util"))
     implementation(project(":kotlin-ide:gradle:gradle-tooling"))
     implementation(project(":kotlin-ide:repl"))
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("coverage"))
+    implementation(intellijPluginDep("IntelliLang"))
+    implementation(intellijPluginDep("bootstrap"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("testFramework"))
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("intellij-dvcs"))
+    implementation(intellijPluginDep("intellij-core"))
+    implementation(intellijPluginDep("java-decompiler"))
+    implementation(intellijPluginDep("java-i18n"))
+    implementation(intellijPluginDep("junit"))
+    implementation(intellijPluginDep("properties"))
+    implementation(intellijPluginDep("testng"))
+    implementation(intellijPluginDep("intellij-xml"))
 }
 
 sourceSets {

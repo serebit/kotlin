@@ -9,9 +9,6 @@ plugins {
 
 dependencies {
     
-    
-    
-    
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:core"))
     implementation(project(":kotlin-ide:jvm"))
@@ -20,11 +17,13 @@ dependencies {
     implementation(project(":kotlin-ide:frontend-independent"))
     implementation(project(":kotlin-ide:gradle:gradle-tooling"))
     implementation(project(":kotlin-ide:tests-common"))
-    
-    
-    
-    
-    
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("testFramework"))
+    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("intellij-core"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("gradle"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

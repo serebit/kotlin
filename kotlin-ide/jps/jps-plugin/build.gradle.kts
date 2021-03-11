@@ -9,27 +9,17 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     implementation(project(":kotlin-ide:jps:jps-common"))
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
-    
-    
-    
-    
-    
-    
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("intellij-core"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("jps-model"))
+    implementation(intellijPluginDep("devkit"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

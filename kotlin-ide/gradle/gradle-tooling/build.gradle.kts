@@ -9,10 +9,7 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
+    implementation(intellijPluginDep("gradle"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

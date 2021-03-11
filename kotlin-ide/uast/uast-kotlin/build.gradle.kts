@@ -9,22 +9,15 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
-    
-    
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:core"))
     implementation(project(":kotlin-ide:frontend-independent"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
-    
-    
-    
-    
-    
+    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("uast-tests"))
+    implementation(intellijPluginDep("intellij-core"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
 }
 
 sourceSets {

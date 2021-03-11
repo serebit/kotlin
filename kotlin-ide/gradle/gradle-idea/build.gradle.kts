@@ -9,19 +9,6 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:core"))
     implementation(project(":kotlin-ide:frontend-independent"))
@@ -39,25 +26,18 @@ dependencies {
     implementation(project(":kotlin-ide:project-wizard:idea"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    implementation(intellijPluginDep("platform-objectSerializer-annotations"))
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("Groovy"))
+    implementation(intellijPluginDep("junit"))
+    implementation(intellijPluginDep("testng"))
+    implementation(intellijPluginDep("gradle-java"))
+    implementation(intellijPluginDep("gradle"))
+    implementation(intellijPluginDep("platform-core-ui"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

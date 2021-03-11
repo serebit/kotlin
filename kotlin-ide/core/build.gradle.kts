@@ -9,37 +9,17 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:frontend-independent"))
     implementation(project(":kotlin-ide:jps:jps-common"))
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    implementation(intellijPluginDep("platform-statistics"))
+    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("intellij-xml"))
+    implementation(intellijPluginDep("platform-core-ui"))
 }
 
 sourceSets {

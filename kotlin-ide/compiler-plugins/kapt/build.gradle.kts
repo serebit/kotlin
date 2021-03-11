@@ -9,16 +9,14 @@ plugins {
 
 dependencies {
     
-    
-    
-    
     implementation(project(":kotlin-ide:core"))
     implementation(project(":kotlin-ide:jps:jps-common"))
     implementation(project(":kotlin-ide:idea"))
     implementation(project(":kotlin-ide:gradle:gradle-idea"))
     implementation(project(":kotlin-ide:gradle:gradle-tooling"))
-    
-    
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("gradle"))
     implementation(project(":kotlin-ide:frontend-independent"))
 }
 

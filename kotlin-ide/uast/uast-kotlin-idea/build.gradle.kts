@@ -9,16 +9,16 @@ plugins {
 
 dependencies {
     
-    
-    
-    
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:core"))
     implementation(project(":kotlin-ide:uast:uast-kotlin"))
-    
-    
-    
-    
+    implementation(intellijPluginDep("platform-util-ex"))
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("intellij-core"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("java"))
 }
 
 sourceSets {

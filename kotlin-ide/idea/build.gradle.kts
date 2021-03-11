@@ -9,27 +9,6 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:core"))
     implementation(project(":kotlin-ide:frontend-independent"))
@@ -60,36 +39,24 @@ dependencies {
     implementation(project(":kotlin-ide:compiler-plugins:allopen"))
     implementation(project(":kotlin-ide:compiler-plugins:parcelize"))
     implementation(project(":kotlin-ide:j2k:services"))
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("platform-statistics"))
+    implementation(intellijPluginDep("intellij-dvcs"))
+    implementation(intellijPluginDep("IntelliLang"))
+    implementation(intellijPluginDep("platform-serviceContainer"))
+    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("junit"))
+    implementation(intellijPluginDep("Groovy"))
+    implementation(intellijPluginDep("gradle"))
+    implementation(intellijPluginDep("markdown"))
+    implementation(intellijPluginDep("spellchecker"))
+    implementation(intellijPluginDep("copyright"))
+    implementation(intellijPluginDep("properties"))
+    implementation(intellijPluginDep("platform-core-ui"))
+    implementation(intellijPluginDep("idea"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

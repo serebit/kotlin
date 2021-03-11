@@ -9,13 +9,6 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
-    
-    
-    
     implementation(project(":kotlin-ide:jps:jps-common"))
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:core"))
@@ -24,10 +17,12 @@ dependencies {
     implementation(project(":kotlin-ide:jvm"))
     implementation(project(":kotlin-ide:formatter"))
     implementation(project(":kotlin-ide:tests-common"))
-    
-    
-    
-    
+    implementation(intellijPluginDep("testFramework-java"))
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("intellij-core"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("platform-api"))
 }
 
 sourceSets {

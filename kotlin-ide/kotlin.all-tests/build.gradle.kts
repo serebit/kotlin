@@ -9,7 +9,6 @@ plugins {
 
 dependencies {
     
-    
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:compiler-plugins:allopen"))
     implementation(project(":kotlin-ide:compiler-plugins:annotation-based-compiler-support"))

@@ -9,12 +9,6 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
-    
-    
     implementation(project(":kotlin-ide:jvm-debugger:test"))
     implementation(project(":kotlin-ide:idea"))
     implementation(project(":kotlin-ide:fir"))
@@ -32,8 +26,11 @@ dependencies {
     implementation(project(":kotlin-ide:test-framework"))
     implementation(project(":kotlin-ide:compiler-plugins:kotlinx-serialization"))
     implementation(project(":kotlin-ide:performance-tests"))
-    
-    
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("intellij-core"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("java"))
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:compiler-plugins:parcelize"))
 }

@@ -9,10 +9,6 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
     implementation(project(":kotlin-ide:resources-fir"))
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:core"))
@@ -24,11 +20,12 @@ dependencies {
     implementation(project(":kotlin-ide:compiler-plugins:sam-with-receiver"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
-    
-    
-    
-    
-    
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("java"))
+    implementation(intellijPluginDep("intellij-core"))
+    implementation(intellijPluginDep("platform-api"))
 }
 
 //sourceSets {

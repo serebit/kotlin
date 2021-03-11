@@ -9,15 +9,14 @@ plugins {
 
 dependencies {
     
-    
-    
     implementation(project(":kotlin-ide:idea"))
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:frontend-independent"))
-    
-    
-    
-    
+    implementation(intellijPluginDep("git4idea"))
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("intellij-core"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
 }
 
 sourceSets {

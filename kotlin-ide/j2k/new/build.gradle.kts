@@ -9,9 +9,6 @@ plugins {
 
 dependencies {
     
-    
-    
-    
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:core"))
     implementation(project(":kotlin-ide:frontend-independent"))
@@ -21,7 +18,7 @@ dependencies {
     implementation(project(":kotlin-ide:j2k:services"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
-    
+    implementation(intellijPluginDep("java"))
     implementation(project(":kotlin-ide:resources-descriptors"))
 }
 

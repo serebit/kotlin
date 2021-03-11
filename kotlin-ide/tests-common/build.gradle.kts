@@ -9,21 +9,15 @@ plugins {
 
 dependencies {
     
-    
-    
-    
-    
-    
-    
-    
-    
     implementation(project(":kotlin-ide:common"))
     implementation(project(":kotlin-ide:test-framework"))
-    
-    
-    
-    
-    
+    implementation(intellijPluginDep("util"))
+    implementation(intellijPluginDep("intellij-core"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("platform-api"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("bootstrap"))
+    implementation(intellijPluginDep("java"))
 }
 
 sourceSets {

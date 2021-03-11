@@ -10,26 +10,21 @@ plugins {
 dependencies {
     implementation(project(":kotlin-ide:fir"))
     
-    
-    
-    
-    
     implementation(project(":kotlin-ide:resources-fir"))
     implementation(project(":kotlin-ide:frontend-fir"))
     implementation(project(":kotlin-ide:frontend-api"))
     implementation(project(":kotlin-ide:tests-common"))
     implementation(project(":kotlin-ide:test-framework"))
     implementation(project(":kotlin-ide:idea"))
-    
-    
+    implementation(intellijPluginDep("platform-impl"))
+    implementation(intellijPluginDep("resources_en"))
+    implementation(intellijPluginDep("intellij-core"))
+    implementation(intellijPluginDep("intellij-core-analysis-deprecated"))
+    implementation(intellijPluginDep("platform-api"))
     implementation(project(":kotlin-ide:core"))
-    
-    
-    
+    implementation(intellijPluginDep("java"))
     implementation(project(":kotlin-ide:frontend-independent"))
-    
     implementation(project(":kotlin-ide:common"))
-    
 }
 
 sourceSets {
