@@ -28,11 +28,11 @@ dependencies {
     implementation(intellijDep(), { includeJars("platform-api") })
 }
 
-//sourceSets {
-//    "main" {
-//        projectDefault()
-//        java.srcDir("../idea-analysis/src")
-//        resources.srcDir("../idea-analysis/resources")
-//    }
-//    "test" {}
-//}
+sourceSets {
+    "main" {
+        java.srcDir("src")
+    }
+    "test" {
+        java.srcDir("test")
+    }
+}
