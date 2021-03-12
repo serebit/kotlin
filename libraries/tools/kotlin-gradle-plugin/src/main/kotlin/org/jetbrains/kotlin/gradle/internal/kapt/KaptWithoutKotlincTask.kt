@@ -205,7 +205,8 @@ abstract class KaptWithoutKotlincTask @Inject constructor(private val workerExec
             KaptExecution(
                 parameters.workerOptions.get(),
                 parameters.toolsJarURLSpec.get(),
-                parameters.kaptClasspath.toList()
+                parameters.kaptClasspath.toList(),
+                parameters.classloadersCacheSize.get()
             ).run()
         }
     }
