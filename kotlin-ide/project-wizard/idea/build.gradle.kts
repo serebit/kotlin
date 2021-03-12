@@ -9,18 +9,18 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:frontend-independent"))
-    implementation(project(":kotlin-ide:jps:jps-common"))
-    implementation(project(":kotlin-ide:jvm"))
-    implementation(project(":kotlin-ide:idea"))
-    implementation(project(":kotlin-ide:formatter"))
-    implementation(project(":kotlin-ide:project-wizard:core"))
-    implementation(project(":kotlin-ide:project-wizard:cli"))
-    implementation(project(":kotlin-ide:gradle:gradle-idea"))
-    implementation(project(":kotlin-ide:tests-common"))
-    implementation(project(":kotlin-ide:test-framework"))
+    jpsLikeCompile(":kotlin-ide:common")
+    jpsLikeCompile(":kotlin-ide:core")
+    jpsLikeCompile(":kotlin-ide:frontend-independent")
+    jpsLikeCompile(":kotlin-ide:jps:jps-common")
+    jpsLikeCompile(":kotlin-ide:jvm")
+    jpsLikeCompile(":kotlin-ide:idea")
+    jpsLikeCompile(":kotlin-ide:formatter")
+    jpsLikeCompile(":kotlin-ide:project-wizard:core")
+    jpsLikeTest(":kotlin-ide:project-wizard:cli")
+    jpsLikeTest(":kotlin-ide:gradle:gradle-idea")
+    jpsLikeTest(":kotlin-ide:tests-common")
+    jpsLikeTest(":kotlin-ide:test-framework")
     implementation(intellijDep(), { includeJars("platform-impl") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijDep(), { includeJars("intellij-dvcs") })
@@ -28,7 +28,7 @@ dependencies {
     implementation(intellijPluginDep("maven"))
     implementation(intellijPluginDep("gradle"))
     implementation(intellijDep(), { includeJars("platform-core-ui") })
-    implementation(project(":kotlin-ide:resources-descriptors"))
+    jpsLikeTest(":kotlin-ide:resources-descriptors")
 }
 
 sourceSets {
@@ -40,3 +40,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

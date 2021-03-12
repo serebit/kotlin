@@ -9,13 +9,13 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:frontend-independent"))
-    implementation(project(":kotlin-ide:j2k:old"))
-    implementation(project(":kotlin-ide:j2k:idea"))
-    implementation(project(":kotlin-ide:jvm-debugger:util"))
-    implementation(project(":kotlin-ide:jvm-debugger:eval4j"))
+    jpsLikeCompile(":kotlin-ide:common")
+    jpsLikeCompile(":kotlin-ide:core")
+    jpsLikeCompile(":kotlin-ide:frontend-independent")
+    jpsLikeCompile(":kotlin-ide:j2k:old")
+    jpsLikeCompile(":kotlin-ide:j2k:idea")
+    jpsLikeCompile(":kotlin-ide:jvm-debugger:util")
+    jpsLikeCompile(":kotlin-ide:jvm-debugger:eval4j")
     implementation(intellijDep(), { includeJars("platform-impl") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijDep(), { includeJars("testFramework") })
@@ -33,3 +33,5 @@ sourceSets {
         
     }
 }
+
+testsJar()

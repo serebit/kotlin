@@ -9,8 +9,8 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:project-wizard:core"))
-    implementation(project(":kotlin-ide:tests-common"))
+    jpsLikeCompile(":kotlin-ide:project-wizard:core")
+    jpsLikeTest(":kotlin-ide:tests-common")
     implementation(intellijDep(), { includeJars("testFramework") })
 }
 
@@ -22,3 +22,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

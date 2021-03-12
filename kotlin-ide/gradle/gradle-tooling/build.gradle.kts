@@ -10,7 +10,7 @@ plugins {
 dependencies {
     
     implementation(intellijPluginDep("gradle"))
-    implementation(project(":kotlin-ide:resources-descriptors"))
+    jpsLikeTest(":kotlin-ide:resources-descriptors")
 }
 
 sourceSets {
@@ -22,3 +22,5 @@ sourceSets {
         
     }
 }
+
+testsJar()

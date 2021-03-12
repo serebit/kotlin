@@ -9,23 +9,23 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:frontend-independent"))
-    implementation(project(":kotlin-ide:jps:jps-common"))
-    implementation(project(":kotlin-ide:jvm"))
-    implementation(project(":kotlin-ide:idea"))
-    implementation(project(":kotlin-ide:formatter"))
-    implementation(project(":kotlin-ide:gradle:gradle-tooling"))
-    implementation(project(":kotlin-ide:jvm-debugger:core"))
-    implementation(project(":kotlin-ide:jvm-debugger:coroutines"))
-    implementation(project(":kotlin-ide:native"))
-    implementation(project(":kotlin-ide:gradle:gradle-native"))
-    implementation(project(":kotlin-ide:compiler-plugins:kapt"))
-    implementation(project(":kotlin-ide:compiler-plugins:scripting"))
-    implementation(project(":kotlin-ide:project-wizard:idea"))
-    implementation(project(":kotlin-ide:tests-common"))
-    implementation(project(":kotlin-ide:test-framework"))
+    jpsLikeCompile(":kotlin-ide:common")
+    jpsLikeCompile(":kotlin-ide:core")
+    jpsLikeCompile(":kotlin-ide:frontend-independent")
+    jpsLikeCompile(":kotlin-ide:jps:jps-common")
+    jpsLikeCompile(":kotlin-ide:jvm")
+    jpsLikeCompile(":kotlin-ide:idea")
+    jpsLikeCompile(":kotlin-ide:formatter")
+    jpsLikeCompile(":kotlin-ide:gradle:gradle-tooling")
+    jpsLikeCompile(":kotlin-ide:jvm-debugger:core")
+    jpsLikeCompile(":kotlin-ide:jvm-debugger:coroutines")
+    jpsLikeCompile(":kotlin-ide:native")
+    jpsLikeTest(":kotlin-ide:gradle:gradle-native")
+    jpsLikeRuntime(":kotlin-ide:compiler-plugins:kapt")
+    jpsLikeRuntime(":kotlin-ide:compiler-plugins:scripting")
+    jpsLikeRuntime(":kotlin-ide:project-wizard:idea")
+    jpsLikeTest(":kotlin-ide:tests-common")
+    jpsLikeTest(":kotlin-ide:test-framework")
     implementation(intellijDep(), { includeJars("platform-objectSerializer-annotations") })
     implementation(intellijDep(), { includeJars("platform-impl") })
     implementation(intellijDep(), { includeJars("resources_en") })
@@ -38,7 +38,7 @@ dependencies {
     implementation(intellijPluginDep("gradle-java"))
     implementation(intellijPluginDep("gradle"))
     implementation(intellijDep(), { includeJars("platform-core-ui") })
-    implementation(project(":kotlin-ide:resources-descriptors"))
+    jpsLikeTest(":kotlin-ide:resources-descriptors")
 }
 
 sourceSets {
@@ -50,3 +50,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

@@ -9,8 +9,8 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:test-framework"))
+    jpsLikeTest(":kotlin-ide:common")
+    jpsLikeTest(":kotlin-ide:test-framework")
     implementation(intellijDep(), { includeJars("util") })
     implementation(intellijDep(), { includeJars("intellij-core") })
     implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
@@ -28,3 +28,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

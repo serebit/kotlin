@@ -9,14 +9,14 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:jps:jps-common"))
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:frontend-independent"))
-    implementation(project(":kotlin-ide:idea"))
-    implementation(project(":kotlin-ide:jvm"))
-    implementation(project(":kotlin-ide:formatter"))
-    implementation(project(":kotlin-ide:tests-common"))
+    jpsLikeTest(":kotlin-ide:jps:jps-common")
+    jpsLikeTest(":kotlin-ide:common")
+    jpsLikeTest(":kotlin-ide:core")
+    jpsLikeTest(":kotlin-ide:frontend-independent")
+    jpsLikeTest(":kotlin-ide:idea")
+    jpsLikeTest(":kotlin-ide:jvm")
+    jpsLikeTest(":kotlin-ide:formatter")
+    jpsLikeTest(":kotlin-ide:tests-common")
     implementation(intellijDep(), { includeJars("testFramework-java") })
     implementation(intellijDep(), { includeJars("platform-impl") })
     implementation(intellijDep(), { includeJars("resources_en") })
@@ -33,3 +33,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

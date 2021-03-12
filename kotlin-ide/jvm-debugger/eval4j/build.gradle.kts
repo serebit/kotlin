@@ -22,3 +22,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

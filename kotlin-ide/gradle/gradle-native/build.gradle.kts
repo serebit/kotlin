@@ -9,18 +9,18 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:frontend-independent"))
-    implementation(project(":kotlin-ide:native"))
-    implementation(project(":kotlin-ide:idea"))
-    implementation(project(":kotlin-ide:jvm"))
-    implementation(project(":kotlin-ide:gradle:gradle-idea"))
+    jpsLikeCompile(":kotlin-ide:common")
+    jpsLikeCompile(":kotlin-ide:core")
+    jpsLikeCompile(":kotlin-ide:frontend-independent")
+    jpsLikeCompile(":kotlin-ide:native")
+    jpsLikeCompile(":kotlin-ide:idea")
+    jpsLikeCompile(":kotlin-ide:jvm")
+    jpsLikeCompile(":kotlin-ide:gradle:gradle-idea")
     implementation(intellijDep(), { includeJars("platform-api") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijPluginDep("gradle-java"))
     implementation(intellijDep(), { includeJars("testFramework") })
-    implementation(project(":kotlin-ide:resources-descriptors"))
+    jpsLikeTest(":kotlin-ide:resources-descriptors")
 }
 
 sourceSets {
@@ -32,3 +32,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

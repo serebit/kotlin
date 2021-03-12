@@ -9,18 +9,18 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:maven"))
-    implementation(project(":kotlin-ide:gradle:gradle-idea"))
-    implementation(project(":kotlin-ide:gradle:gradle-tooling"))
-    implementation(project(":kotlin-ide:compiler-plugins:annotation-based-compiler-support"))
+    jpsLikeCompile(":kotlin-ide:core")
+    jpsLikeCompile(":kotlin-ide:common")
+    jpsLikeCompile(":kotlin-ide:maven")
+    jpsLikeCompile(":kotlin-ide:gradle:gradle-idea")
+    jpsLikeCompile(":kotlin-ide:gradle:gradle-tooling")
+    jpsLikeCompile(":kotlin-ide:compiler-plugins:annotation-based-compiler-support")
     implementation(intellijDep(), { includeJars("platform-api") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijDep(), { includeJars("intellij-core") })
     implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
     implementation(intellijPluginDep("gradle"))
-    implementation(project(":kotlin-ide:frontend-independent"))
+    jpsLikeCompile(":kotlin-ide:frontend-independent")
 }
 
 sourceSets {
@@ -32,3 +32,5 @@ sourceSets {
         
     }
 }
+
+testsJar()

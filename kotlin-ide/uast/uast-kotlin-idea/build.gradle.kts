@@ -9,9 +9,9 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:uast:uast-kotlin"))
+    jpsLikeCompile(":kotlin-ide:common")
+    jpsLikeCompile(":kotlin-ide:core")
+    jpsLikeCompile(":kotlin-ide:uast:uast-kotlin")
     implementation(intellijDep(), { includeJars("platform-util-ex") })
     implementation(intellijDep(), { includeJars("platform-impl") })
     implementation(intellijDep(), { includeJars("resources_en") })
@@ -29,3 +29,5 @@ sourceSets {
         
     }
 }
+
+testsJar()

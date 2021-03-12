@@ -14,7 +14,7 @@ dependencies {
     implementation(intellijDep(), { includeJars("intellij-core") })
     implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
     implementation(intellijPluginDep("java"))
-    implementation(project(":kotlin-ide:frontend-independent"))
+    jpsLikeCompile(":kotlin-ide:frontend-independent")
 }
 
 sourceSets {
@@ -25,3 +25,5 @@ sourceSets {
         
     }
 }
+
+testsJar()

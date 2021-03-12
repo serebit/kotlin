@@ -9,21 +9,21 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:frontend-independent"))
-    implementation(project(":kotlin-ide:j2k:old"))
-    implementation(project(":kotlin-ide:j2k:new"))
-    implementation(project(":kotlin-ide:j2k:idea"))
-    implementation(project(":kotlin-ide:jvm"))
-    implementation(project(":kotlin-ide:idea"))
-    implementation(project(":kotlin-ide:jvm-debugger:sequence"))
+    jpsLikeCompile(":kotlin-ide:common")
+    jpsLikeCompile(":kotlin-ide:core")
+    jpsLikeCompile(":kotlin-ide:frontend-independent")
+    jpsLikeCompile(":kotlin-ide:j2k:old")
+    jpsLikeCompile(":kotlin-ide:j2k:new")
+    jpsLikeCompile(":kotlin-ide:j2k:idea")
+    jpsLikeCompile(":kotlin-ide:jvm")
+    jpsLikeCompile(":kotlin-ide:idea")
+    jpsLikeCompile(":kotlin-ide:jvm-debugger:sequence")
     implementation(intellijDep(), { includeJars("platform-impl") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijPluginDep("java"))
     implementation(intellijDep(), { includeJars("intellij-core") })
     implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
-    implementation(project(":kotlin-ide:resources-descriptors"))
+    jpsLikeTest(":kotlin-ide:resources-descriptors")
 }
 
 sourceSets {
@@ -35,3 +35,5 @@ sourceSets {
         
     }
 }
+
+testsJar()

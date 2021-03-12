@@ -9,30 +9,30 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:jvm-debugger:test"))
-    implementation(project(":kotlin-ide:idea"))
-    implementation(project(":kotlin-ide:fir"))
-    implementation(project(":kotlin-ide:scripting-support"))
-    implementation(project(":kotlin-ide:maven"))
-    implementation(project(":kotlin-ide:gradle:gradle-idea"))
-    implementation(project(":kotlin-ide:project-wizard:cli"))
-    implementation(project(":kotlin-ide:project-wizard:idea"))
-    implementation(project(":kotlin-ide:j2k:old"))
-    implementation(project(":kotlin-ide:j2k:new"))
-    implementation(project(":kotlin-ide:jps:jps-plugin"))
-    implementation(project(":kotlin-ide:frontend-fir"))
-    implementation(project(":kotlin-ide:fir-low-level-api"))
-    implementation(project(":kotlin-ide:tests-common"))
-    implementation(project(":kotlin-ide:test-framework"))
-    implementation(project(":kotlin-ide:compiler-plugins:kotlinx-serialization"))
-    implementation(project(":kotlin-ide:performance-tests"))
+    jpsLikeCompile(":kotlin-ide:jvm-debugger:test")
+    jpsLikeCompile(":kotlin-ide:idea")
+    jpsLikeCompile(":kotlin-ide:fir")
+    jpsLikeCompile(":kotlin-ide:scripting-support")
+    jpsLikeCompile(":kotlin-ide:maven")
+    jpsLikeCompile(":kotlin-ide:gradle:gradle-idea")
+    jpsLikeCompile(":kotlin-ide:project-wizard:cli")
+    jpsLikeCompile(":kotlin-ide:project-wizard:idea")
+    jpsLikeCompile(":kotlin-ide:j2k:old")
+    jpsLikeCompile(":kotlin-ide:j2k:new")
+    jpsLikeCompile(":kotlin-ide:jps:jps-plugin")
+    jpsLikeTest(":kotlin-ide:frontend-fir")
+    jpsLikeTest(":kotlin-ide:fir-low-level-api")
+    jpsLikeTest(":kotlin-ide:tests-common")
+    jpsLikeTest(":kotlin-ide:test-framework")
+    jpsLikeTest(":kotlin-ide:compiler-plugins:kotlinx-serialization")
+    jpsLikeTest(":kotlin-ide:performance-tests")
     implementation(intellijDep(), { includeJars("platform-api") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijDep(), { includeJars("intellij-core") })
     implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
     implementation(intellijPluginDep("java"))
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:compiler-plugins:parcelize"))
+    jpsLikeTest(":kotlin-ide:common")
+    jpsLikeTest(":kotlin-ide:compiler-plugins:parcelize")
 }
 
 sourceSets {
@@ -43,3 +43,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

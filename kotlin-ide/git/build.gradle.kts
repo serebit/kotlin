@@ -9,9 +9,9 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:idea"))
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:frontend-independent"))
+    jpsLikeCompile(":kotlin-ide:idea")
+    jpsLikeCompile(":kotlin-ide:common")
+    jpsLikeCompile(":kotlin-ide:frontend-independent")
     implementation(intellijPluginDep("git4idea"))
     implementation(intellijDep(), { includeJars("platform-api") })
     implementation(intellijDep(), { includeJars("resources_en") })
@@ -28,3 +28,5 @@ sourceSets {
         
     }
 }
+
+testsJar()

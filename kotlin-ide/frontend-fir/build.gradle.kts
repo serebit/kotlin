@@ -9,14 +9,14 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:resources-fir"))
-    implementation(project(":kotlin-ide:frontend-independent"))
-    implementation(project(":kotlin-ide:fir-low-level-api"))
-    implementation(project(":kotlin-ide:frontend-api"))
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:tests-common"))
-    implementation(project(":kotlin-ide:test-framework"))
-    implementation(project(":kotlin-ide:common"))
+    jpsLikeTest(":kotlin-ide:resources-fir")
+    jpsLikeCompile(":kotlin-ide:frontend-independent")
+    jpsLikeCompile(":kotlin-ide:fir-low-level-api")
+    jpsLikeCompile(":kotlin-ide:frontend-api")
+    jpsLikeCompile(":kotlin-ide:core")
+    jpsLikeTest(":kotlin-ide:tests-common")
+    jpsLikeTest(":kotlin-ide:test-framework")
+    jpsLikeTest(":kotlin-ide:common")
     implementation(intellijDep(), { includeJars("platform-api") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijDep(), { includeJars("intellij-core") })
@@ -35,3 +35,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

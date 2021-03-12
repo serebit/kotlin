@@ -16,7 +16,7 @@ dependencies {
     implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
     implementation(intellijDep(), { includeJars("intellij-xml") })
     implementation(intellijDep(), { includeJars("platform-core-ui") })
-    implementation(project(":kotlin-ide:tests-common"))
+    jpsLikeTest(":kotlin-ide:tests-common")
 }
 
 sourceSets {
@@ -28,3 +28,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

@@ -9,11 +9,11 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:resources-fir"))
-    implementation(project(":kotlin-ide:fir"))
-    implementation(project(":kotlin-ide:fir-low-level-api"))
-    implementation(project(":kotlin-ide:frontend-api"))
-    implementation(project(":kotlin-ide:frontend-fir"))
+    jpsLikeCompile(":kotlin-ide:resources-fir")
+    jpsLikeCompile(":kotlin-ide:fir")
+    jpsLikeCompile(":kotlin-ide:fir-low-level-api")
+    jpsLikeCompile(":kotlin-ide:frontend-api")
+    jpsLikeCompile(":kotlin-ide:frontend-fir")
 }
 
 sourceSets {
@@ -24,3 +24,5 @@ sourceSets {
         
     }
 }
+
+testsJar()

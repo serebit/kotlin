@@ -9,11 +9,11 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:frontend-independent"))
-    implementation(project(":kotlin-ide:tests-common"))
-    implementation(project(":kotlin-ide:test-framework"))
+    jpsLikeTest(":kotlin-ide:common")
+    jpsLikeTest(":kotlin-ide:core")
+    jpsLikeTest(":kotlin-ide:frontend-independent")
+    jpsLikeTest(":kotlin-ide:tests-common")
+    jpsLikeTest(":kotlin-ide:test-framework")
     implementation(intellijPluginDep("java"))
     implementation(intellijDep(), { includeJars("uast-tests") })
     implementation(intellijDep(), { includeJars("intellij-core") })
@@ -28,3 +28,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

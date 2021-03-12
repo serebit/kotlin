@@ -9,9 +9,9 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:frontend-independent"))
-    implementation(project(":kotlin-ide:jps:jps-common"))
+    jpsLikeCompile(":kotlin-ide:common")
+    jpsLikeCompile(":kotlin-ide:frontend-independent")
+    jpsLikeCompile(":kotlin-ide:jps:jps-common")
     implementation(intellijDep(), { includeJars("platform-statistics") })
     implementation(intellijPluginDep("java"))
     implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
@@ -33,3 +33,5 @@ sourceSets {
         
     }
 }
+
+testsJar()

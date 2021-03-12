@@ -9,9 +9,9 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:jps:jps-common"))
-    implementation(project(":kotlin-ide:gradle:gradle-idea"))
+    jpsLikeCompile(":kotlin-ide:core")
+    jpsLikeCompile(":kotlin-ide:jps:jps-common")
+    jpsLikeCompile(":kotlin-ide:gradle:gradle-idea")
     implementation(intellijDep(), { includeJars("platform-api") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijPluginDep("gradle"))
@@ -25,3 +25,5 @@ sourceSets {
         
     }
 }
+
+testsJar()

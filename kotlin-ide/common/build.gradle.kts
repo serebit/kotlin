@@ -14,7 +14,7 @@ dependencies {
     implementation(intellijDep(), { includeJars("intellij-core") })
     implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
     implementation(intellijPluginDep("java"))
-    implementation(project(":kotlin-ide:resources-descriptors"))
+    jpsLikeTest(":kotlin-ide:resources-descriptors")
 }
 
 sourceSets {
@@ -25,3 +25,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

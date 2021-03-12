@@ -25,3 +25,5 @@ sourceSets {
         
     }
 }
+
+testsJar()

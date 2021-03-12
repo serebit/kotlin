@@ -9,7 +9,7 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:common"))
+    jpsLikeCompile(":kotlin-ide:common")
     implementation(intellijDep(), { includeJars("platform-impl") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijDep(), { includeJars("intellij-core") })
@@ -26,3 +26,5 @@ sourceSets {
         
     }
 }
+
+testsJar()

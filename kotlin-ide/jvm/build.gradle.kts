@@ -9,16 +9,16 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:frontend-independent"))
-    implementation(project(":kotlin-ide:jps:jps-common"))
-    implementation(project(":kotlin-ide:jvm-debugger:core"))
-    implementation(project(":kotlin-ide:idea"))
-    implementation(project(":kotlin-ide:formatter"))
-    implementation(project(":kotlin-ide:jvm-debugger:util"))
-    implementation(project(":kotlin-ide:gradle:gradle-tooling"))
-    implementation(project(":kotlin-ide:repl"))
+    jpsLikeCompile(":kotlin-ide:core")
+    jpsLikeCompile(":kotlin-ide:common")
+    jpsLikeCompile(":kotlin-ide:frontend-independent")
+    jpsLikeCompile(":kotlin-ide:jps:jps-common")
+    jpsLikeCompile(":kotlin-ide:jvm-debugger:core")
+    jpsLikeCompile(":kotlin-ide:idea")
+    jpsLikeCompile(":kotlin-ide:formatter")
+    jpsLikeCompile(":kotlin-ide:jvm-debugger:util")
+    jpsLikeCompile(":kotlin-ide:gradle:gradle-tooling")
+    jpsLikeCompile(":kotlin-ide:repl")
     implementation(intellijPluginDep("java"))
     implementation(intellijDep(), { includeJars("platform-api") })
     implementation(intellijDep(), { includeJars("resources_en") })
@@ -47,3 +47,5 @@ sourceSets {
         
     }
 }
+
+testsJar()

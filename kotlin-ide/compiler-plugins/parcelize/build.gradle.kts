@@ -9,13 +9,13 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:tests-common"))
-    implementation(project(":kotlin-ide:test-framework"))
-    implementation(project(":kotlin-ide:idea"))
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:compiler-plugins:scripting"))
-    implementation(project(":kotlin-ide:gradle:gradle-tooling"))
-    implementation(project(":kotlin-ide:common"))
+    jpsLikeTest(":kotlin-ide:tests-common")
+    jpsLikeTest(":kotlin-ide:test-framework")
+    jpsLikeCompile(":kotlin-ide:idea")
+    jpsLikeCompile(":kotlin-ide:core")
+    jpsLikeTest(":kotlin-ide:compiler-plugins:scripting")
+    jpsLikeCompile(":kotlin-ide:gradle:gradle-tooling")
+    jpsLikeCompile(":kotlin-ide:common")
     implementation(intellijDep(), { includeJars("platform-api") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijDep(), { includeJars("intellij-core") })
@@ -23,7 +23,7 @@ dependencies {
     implementation(intellijPluginDep("gradle"))
     implementation(intellijPluginDep("java"))
     implementation(intellijDep(), { includeJars("platform-objectSerializer-annotations") })
-    implementation(project(":kotlin-ide:frontend-independent"))
+    jpsLikeCompile(":kotlin-ide:frontend-independent")
 }
 
 sourceSets {
@@ -35,3 +35,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

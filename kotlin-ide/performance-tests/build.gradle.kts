@@ -9,24 +9,24 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:frontend-independent"))
-    implementation(project(":kotlin-ide:gradle:gradle-tooling"))
-    implementation(project(":kotlin-ide:idea"))
-    implementation(project(":kotlin-ide:gradle:gradle-idea"))
-    implementation(project(":kotlin-ide:native"))
-    implementation(project(":kotlin-ide:formatter"))
-    implementation(project(":kotlin-ide:jps:jps-common"))
-    implementation(project(":kotlin-ide:jvm"))
-    implementation(project(":kotlin-ide:tests-common"))
-    implementation(project(":kotlin-ide:test-framework"))
+    jpsLikeTest(":kotlin-ide:common")
+    jpsLikeTest(":kotlin-ide:core")
+    jpsLikeTest(":kotlin-ide:frontend-independent")
+    jpsLikeTest(":kotlin-ide:gradle:gradle-tooling")
+    jpsLikeTest(":kotlin-ide:idea")
+    jpsLikeTest(":kotlin-ide:gradle:gradle-idea")
+    jpsLikeTest(":kotlin-ide:native")
+    jpsLikeTest(":kotlin-ide:formatter")
+    jpsLikeTest(":kotlin-ide:jps:jps-common")
+    jpsLikeTest(":kotlin-ide:jvm")
+    jpsLikeTest(":kotlin-ide:tests-common")
+    jpsLikeTest(":kotlin-ide:test-framework")
     implementation(intellijDep(), { includeJars("platform-impl") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
     implementation(intellijDep(), { includeJars("intellij-dvcs") })
     implementation(intellijPluginDep("gradle"))
-    implementation(project(":kotlin-ide:resources-descriptors"))
+    jpsLikeTest(":kotlin-ide:resources-descriptors")
 }
 
 sourceSets {
@@ -37,3 +37,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

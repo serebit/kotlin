@@ -9,10 +9,10 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:frontend-independent"))
-    implementation(project(":kotlin-ide:idea"))
-    implementation(project(":kotlin-ide:common"))
+    jpsLikeCompile(":kotlin-ide:core")
+    jpsLikeCompile(":kotlin-ide:frontend-independent")
+    jpsLikeCompile(":kotlin-ide:idea")
+    jpsLikeCompile(":kotlin-ide:common")
     implementation(intellijDep(), { includeJars("platform-api") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
@@ -32,3 +32,5 @@ sourceSets {
         
     }
 }
+
+testsJar()

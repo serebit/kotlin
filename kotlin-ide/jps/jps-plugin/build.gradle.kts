@@ -9,10 +9,10 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:jps:jps-common"))
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:tests-common"))
-    implementation(project(":kotlin-ide:test-framework"))
+    jpsLikeCompile(":kotlin-ide:jps:jps-common")
+    jpsLikeCompile(":kotlin-ide:common")
+    jpsLikeTest(":kotlin-ide:tests-common")
+    jpsLikeTest(":kotlin-ide:test-framework")
     implementation(intellijDep(), { includeJars("platform-api") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijDep(), { includeJars("intellij-core") })
@@ -20,7 +20,7 @@ dependencies {
     implementation(intellijPluginDep("java"))
     implementation(intellijDep(), { includeJars("jps-model") })
     implementation(intellijPluginDep("devkit"))
-    implementation(project(":kotlin-ide:resources-descriptors"))
+    jpsLikeTest(":kotlin-ide:resources-descriptors")
 }
 
 sourceSets {
@@ -32,3 +32,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

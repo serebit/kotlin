@@ -9,17 +9,17 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:common"))
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:frontend-independent"))
-    implementation(project(":kotlin-ide:tests-common"))
-    implementation(project(":kotlin-ide:test-framework"))
-    implementation(project(":kotlin-ide:jvm-debugger:core"))
-    implementation(project(":kotlin-ide:jvm-debugger:util"))
-    implementation(project(":kotlin-ide:jvm-debugger:coroutines"))
-    implementation(project(":kotlin-ide:jvm-debugger:evaluation"))
-    implementation(project(":kotlin-ide:jvm-debugger:sequence"))
-    implementation(project(":kotlin-ide:jvm-debugger:eval4j"))
+    jpsLikeTest(":kotlin-ide:common")
+    jpsLikeTest(":kotlin-ide:core")
+    jpsLikeTest(":kotlin-ide:frontend-independent")
+    jpsLikeTest(":kotlin-ide:tests-common")
+    jpsLikeTest(":kotlin-ide:test-framework")
+    jpsLikeTest(":kotlin-ide:jvm-debugger:core")
+    jpsLikeTest(":kotlin-ide:jvm-debugger:util")
+    jpsLikeTest(":kotlin-ide:jvm-debugger:coroutines")
+    jpsLikeTest(":kotlin-ide:jvm-debugger:evaluation")
+    jpsLikeTest(":kotlin-ide:jvm-debugger:sequence")
+    jpsLikeTest(":kotlin-ide:jvm-debugger:eval4j")
     implementation(intellijDep(), { includeJars("platform-api") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijDep(), { includeJars("intellij-core-analysis-deprecated") })
@@ -36,3 +36,5 @@ sourceSets {
         java.srcDir("test")
     }
 }
+
+testsJar()

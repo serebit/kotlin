@@ -9,15 +9,15 @@ plugins {
 
 dependencies {
     
-    implementation(project(":kotlin-ide:core"))
-    implementation(project(":kotlin-ide:jps:jps-common"))
-    implementation(project(":kotlin-ide:idea"))
-    implementation(project(":kotlin-ide:gradle:gradle-idea"))
-    implementation(project(":kotlin-ide:gradle:gradle-tooling"))
+    jpsLikeCompile(":kotlin-ide:core")
+    jpsLikeCompile(":kotlin-ide:jps:jps-common")
+    jpsLikeCompile(":kotlin-ide:idea")
+    jpsLikeCompile(":kotlin-ide:gradle:gradle-idea")
+    jpsLikeCompile(":kotlin-ide:gradle:gradle-tooling")
     implementation(intellijDep(), { includeJars("platform-api") })
     implementation(intellijDep(), { includeJars("resources_en") })
     implementation(intellijPluginDep("gradle"))
-    implementation(project(":kotlin-ide:frontend-independent"))
+    jpsLikeCompile(":kotlin-ide:frontend-independent")
 }
 
 sourceSets {
@@ -29,3 +29,5 @@ sourceSets {
         
     }
 }
+
+testsJar()
