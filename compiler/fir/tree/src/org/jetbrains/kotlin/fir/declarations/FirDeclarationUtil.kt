@@ -187,11 +187,6 @@ private object IsReferredViaField : FirDeclarationDataKey()
 var FirProperty.isFromVararg: Boolean? by FirDeclarationDataRegistry.data(IsFromVarargKey)
 var FirProperty.isReferredViaField: Boolean? by FirDeclarationDataRegistry.data(IsReferredViaField)
 
-private object BaseSymbolsForFakeOverrides : FirDeclarationDataKey()
-
-var FirClass<*>.baseSymbolsForFakeOverrides: Collection<FirCallableSymbol<*>>?
-        by FirDeclarationDataRegistry.data(BaseSymbolsForFakeOverrides)
-
 // See [BindingContext.BACKING_FIELD_REQUIRED]
 val FirProperty.hasBackingField: Boolean
     get() {

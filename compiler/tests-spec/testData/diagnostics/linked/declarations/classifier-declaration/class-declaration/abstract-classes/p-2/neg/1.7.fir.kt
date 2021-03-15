@@ -59,7 +59,7 @@ fun case2() {
 
 // TESTCASE NUMBER: 3
 
-class Case3 : BaseKotlin() {}
+<!ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED!>class Case3<!> : BaseKotlin() {}
 
 fun case3() {
     val v = Case3()
@@ -73,7 +73,7 @@ fun case3() {
 */
 abstract class AbstractClassCase4 : BaseKotlin() {}
 
-class Case4 : AbstractClassCase4() {}
+<!ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED!>class Case4<!> : AbstractClassCase4() {}
 
 fun case4() {
     val v = Case4()

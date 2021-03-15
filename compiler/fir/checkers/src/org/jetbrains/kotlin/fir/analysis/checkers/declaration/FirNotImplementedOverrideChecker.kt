@@ -41,21 +41,23 @@ object FirNotImplementedOverrideChecker : FirClassChecker() {
         if (source.kind is FirFakeSourceElementKind) return
 
         val contributedMembers = collectCallableMembers(declaration, context)
-        val baseSymbolsForFakeOverrides = declaration.calcBaseSymbolsForFakeOverrides(
+        val trivialFakeOverrideStubs = declaration.computeFakeOverrideStubs(
             contributedMembers, context.session, context.sessionHolder.scopeSession
         ).filter {
-            val fir = it.fir
+            if (it !is FirFakeOverrideStub.Trivial) return@filter false
+            val fir = it.baseSymbol.fir
             fir is FirMemberDeclaration &&
                     fir.isAbstract &&
                     // TODO: FIR MPP support
                     (fir.getContainingClass(context) as? FirRegularClass)?.isExpect == false
         }
 
-        if (baseSymbolsForFakeOverrides.isEmpty()) return
+        if (trivialFakeOverrideStubs.isEmpty()) return
 
         // TODO: differentiate type-substituted declarations. Otherwise, they will be reported as MANY_IMPL_MEMBER_NOT_IMPLEMENTED
         val sigToDeclarations = mutableMapOf<String, MutableList<FirCallableDeclaration<*>>>()
-        for (baseSymbolForFakeOverride in baseSymbolsForFakeOverrides) {
+        for (trivialFakeOverrideStub in trivialFakeOverrideStubs) {
+            val baseSymbolForFakeOverride = trivialFakeOverrideStub.baseSymbol
             val sig = when (baseSymbolForFakeOverride) {
                 is FirNamedFunctionSymbol -> SignaturePresenter.represent(baseSymbolForFakeOverride.fir)
                 is FirPropertySymbol -> SignaturePresenter.represent(baseSymbolForFakeOverride.fir)
