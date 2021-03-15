@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.fir.analysis.checkers.declaration
 
 import org.jetbrains.kotlin.descriptors.Modality
-import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.checkers.FirDeclarationPresenter
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
@@ -43,26 +42,27 @@ object FirNotImplementedOverrideChecker : FirClassChecker() {
         if (source.kind is FirFakeSourceElementKind) return
 
         val contributedMembers = collectCallableMembers(declaration, context)
-        val potentialFakeOverrides = getBaseDeclarationsForFakeOverrides(declaration, contributedMembers, context)
-
-        // TODO: consider open as overridable, and check conflicts as well
-        val abstractFakeOverrides = potentialFakeOverrides.filter {
-            it is FirMemberDeclaration &&
-                    it.isAbstract &&
+        val baseSymbolsForFakeOverrides = declaration.calcBaseSymbolsForFakeOverrides(
+            contributedMembers, context.findClosestFile()!!, context.session, context.sessionHolder.scopeSession
+        ).filter {
+            val fir = it.fir
+            fir is FirMemberDeclaration &&
+                    fir.isAbstract &&
                     // TODO: FIR MPP support
-                    (it.getContainingClass(context) as? FirRegularClass)?.isExpect == false
+                    (fir.getContainingClass(context) as? FirRegularClass)?.isExpect == false
         }
-        if (abstractFakeOverrides.isEmpty()) return
+
+        if (baseSymbolsForFakeOverrides.isEmpty()) return
 
         // TODO: differentiate type-substituted declarations. Otherwise, they will be reported as MANY_IMPL_MEMBER_NOT_IMPLEMENTED
         val sigToDeclarations = mutableMapOf<String, MutableList<FirCallableDeclaration<*>>>()
-        for (abstractFakeOverride in abstractFakeOverrides) {
-            val sig = when (abstractFakeOverride) {
-                is FirSimpleFunction -> SignaturePresenter.represent(abstractFakeOverride)
-                is FirProperty -> SignaturePresenter.represent(abstractFakeOverride)
+        for (baseSymbolForFakeOverride in baseSymbolsForFakeOverrides) {
+            val sig = when (baseSymbolForFakeOverride) {
+                is FirNamedFunctionSymbol -> SignaturePresenter.represent(baseSymbolForFakeOverride.fir)
+                is FirPropertySymbol -> SignaturePresenter.represent(baseSymbolForFakeOverride.fir)
                 else -> continue
             }
-            sigToDeclarations.computeIfAbsent(sig) { mutableListOf() }.add(abstractFakeOverride)
+            sigToDeclarations.computeIfAbsent(sig) { mutableListOf() }.add(baseSymbolForFakeOverride.fir)
         }
 
         val canHaveAbstractMembers = declaration is FirRegularClass && declaration.canHaveAbstractFakeOverride
@@ -192,112 +192,5 @@ object FirNotImplementedOverrideChecker : FirClassChecker() {
         }
 
         return result
-    }
-
-    // See [FakeOverrideGenerator#getFakeOverrides]
-    // But, this one doesn't create fake overrides. We just need what _base_ declarations will be referred by fake overrides.
-    private fun getBaseDeclarationsForFakeOverrides(
-        firClass: FirClass<*>,
-        contributedDeclarations: Collection<FirDeclaration>,
-        context: CheckerContext
-    ): Collection<FirCallableDeclaration<*>> {
-        val result = mutableListOf<FirCallableDeclaration<*>>()
-        val classScope = firClass.unsubstitutedScope(context)
-
-        fun checkFunctionSymbolAndAddToResult(originalSymbol: FirCallableSymbol<*>) {
-            computeBaseDeclarations(
-                firClass,
-                originalSymbol,
-                contributedDeclarations,
-                result,
-                classScope,
-                FirTypeScope::getDirectOverriddenFunctions,
-                context
-            )
-        }
-
-        fun checkPropertySymbolAndAddToResult(originalSymbol: FirCallableSymbol<*>) {
-            computeBaseDeclarations(
-                firClass,
-                originalSymbol,
-                contributedDeclarations,
-                result,
-                classScope,
-                FirTypeScope::getDirectOverriddenProperties,
-                context
-            )
-        }
-
-        val contributedDeclarationNames = contributedDeclarations.mapNotNullTo(mutableSetOf()) l@{
-            val callableDeclaration = (it as? FirCallableMemberDeclaration<*>) ?: return@l null
-            // TODO: for multi-inheritance, we may need much stronger conditions like something in [FakeOverrideGenerator]
-            // For now, collect non-abstract members only
-            if (callableDeclaration.status.modality == Modality.ABSTRACT) null
-            // Otherwise, bail out early based on the name of the contributed member declaration
-            else callableDeclaration.symbol.callableId.callableName
-        }
-
-        val superTypesCallableNames = classScope.getCallableNames().filter { it !in contributedDeclarationNames }
-        for (name in superTypesCallableNames) {
-            classScope.processFunctionsByName(name) { functionSymbol ->
-                // TODO: MANY_* as well as some conflict diagnostics
-                //if (functionSymbol is FirIntersectionOverrideFunctionSymbol)
-                //    functionSymbol.intersections.forEach(::checkFunctionSymbolAndAddToResult)
-                //else
-                checkFunctionSymbolAndAddToResult(functionSymbol)
-            }
-
-            classScope.processPropertiesByName(name) { propertySymbol ->
-                // TODO: MANY_* as well as some conflict diagnostics
-                //if (propertySymbol is FirIntersectionOverridePropertySymbol)
-                //    propertySymbol.intersections.forEach(::checkPropertySymbolAndAddToResult)
-                //else
-                checkPropertySymbolAndAddToResult(propertySymbol)
-            }
-        }
-
-        return result
-    }
-
-    // See [FakeOverrideGenerator#createFakeOverriddenIfNeeded]
-    private inline fun <reified D : FirCallableMemberDeclaration<D>, reified S : FirCallableSymbol<D>> computeBaseDeclarations(
-        firClass: FirClass<*>,
-        originalSymbol: FirCallableSymbol<*>,
-        contributedDeclarations: Collection<FirDeclaration>,
-        result: MutableList<FirCallableDeclaration<*>>,
-        scope: FirTypeScope,
-        computeDirectOverridden: FirTypeScope.(S) -> List<S>,
-        context: CheckerContext
-    ) {
-        if (originalSymbol !is S || originalSymbol.fir in contributedDeclarations) return
-        val classLookupTag = firClass.symbol.toLookupTag()
-        val originalDeclaration = originalSymbol.fir
-        if (originalSymbol.dispatchReceiverClassOrNull() == classLookupTag && !originalDeclaration.origin.fromSupertypes) return
-        if (originalDeclaration.visibility == Visibilities.Private) return
-        when {
-            originalSymbol.shouldHaveComputedBaseSymbolsForClass(classLookupTag) -> {
-                // Substitution or intersection case.
-                // The current one is a FIR declaration for that fake override, and we can compute base symbols from it.
-                computeBaseSymbols(originalSymbol, computeDirectOverridden, scope, classLookupTag)
-            }
-            originalDeclaration.allowsToHaveFakeOverrideIn(firClass, context) -> {
-                // Trivial fake override case.
-                // FIR2IR will create a fake override in BE IR directly, and the current one _is_ the base declaration.
-                result.add(originalSymbol.fir)
-            }
-        }
-    }
-
-    private fun FirCallableMemberDeclaration<*>.allowsToHaveFakeOverrideIn(
-        firClass: FirClass<*>,
-        context: CheckerContext
-    ): Boolean {
-        if (!allowsToHaveFakeOverride) return false
-        // NB: the counterpart in [FakeOverrideGenerator] does the following simple check. But, Java visibility isn't accessible here.
-        // if (this.visibility != JavaDescriptorVisibilities.PACKAGE_VISIBILITY) return true
-        val session = context.session
-        val useSiteFile = context.findClosestFile() ?: return false
-        if (!session.visibilityChecker.isVisible(this, session, useSiteFile, context.containingDeclarations, null)) return false
-        return this.symbol.callableId.packageName == firClass.symbol.classId.packageFqName
     }
 }
