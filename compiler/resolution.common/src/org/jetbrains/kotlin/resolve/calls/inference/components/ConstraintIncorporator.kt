@@ -94,7 +94,7 @@ class ConstraintIncorporator(
         val freshTypeConstructor = typeVariable.freshTypeConstructor()
         for (typeVariableWithConstraint in this@insideOtherConstraint.allTypeVariablesWithConstraints) {
             val constraintsWhichConstraintMyVariable = typeVariableWithConstraint.constraints.filter {
-                it.type.contains { it.typeConstructor() == freshTypeConstructor }
+                containsTypeVariable(it.type, freshTypeConstructor)
             }
             constraintsWhichConstraintMyVariable.forEach {
                 generateNewConstraint(typeVariableWithConstraint.typeVariable, it, typeVariable, constraint)
