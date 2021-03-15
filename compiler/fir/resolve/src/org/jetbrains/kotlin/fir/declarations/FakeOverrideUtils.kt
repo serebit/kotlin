@@ -17,7 +17,6 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 
 fun FirClass<*>.calcBaseSymbolsForFakeOverrides(
     contributedDeclarations: Collection<FirDeclaration>,
-    containerFile: FirFile,
     session: FirSession,
     scopeSession: ScopeSession,
 ): Collection<FirCallableSymbol<*>> {
@@ -31,9 +30,7 @@ fun FirClass<*>.calcBaseSymbolsForFakeOverrides(
             contributedDeclarations,
             result,
             classScope,
-            FirTypeScope::getDirectOverriddenFunctions,
-            containerFile,
-            session
+            FirTypeScope::getDirectOverriddenFunctions
         )
     }
 
@@ -43,9 +40,7 @@ fun FirClass<*>.calcBaseSymbolsForFakeOverrides(
             contributedDeclarations,
             result,
             classScope,
-            FirTypeScope::getDirectOverriddenProperties,
-            containerFile,
-            session
+            FirTypeScope::getDirectOverriddenProperties
         )
     }
 
@@ -87,8 +82,6 @@ private inline fun <reified D : FirCallableMemberDeclaration<D>, reified S : Fir
     result: MutableList<FirCallableSymbol<*>>,
     scope: FirTypeScope,
     computeDirectOverridden: FirTypeScope.(S) -> List<S>,
-    containerFile: FirFile,
-    session: FirSession,
 ) {
     if (originalSymbol !is S || originalSymbol.fir in contributedDeclarations) return
     val classLookupTag = symbol.toLookupTag()
@@ -101,7 +94,7 @@ private inline fun <reified D : FirCallableMemberDeclaration<D>, reified S : Fir
             // The current one is a FIR declaration for that fake override, and we can compute base symbols from it.
             computeBaseSymbols(originalSymbol, computeDirectOverridden, scope, classLookupTag)
         }
-        originalDeclaration.allowsToHaveFakeOverrideIn(firClass = this, containerFile, session) -> {
+        originalDeclaration.allowsToHaveFakeOverrideIn(firClass = this) -> {
             // Trivial fake override case.
             // FIR2IR will create a fake override in BE IR directly, and the current one _is_ the base declaration.
             result.add(originalSymbol)
@@ -109,17 +102,10 @@ private inline fun <reified D : FirCallableMemberDeclaration<D>, reified S : Fir
     }
 }
 
-private fun FirCallableMemberDeclaration<*>.allowsToHaveFakeOverrideIn(
-    firClass: FirClass<*>,
-    containerFile: FirFile,
-    session: FirSession,
-): Boolean {
+private fun FirCallableMemberDeclaration<*>.allowsToHaveFakeOverrideIn(firClass: FirClass<*>): Boolean {
     if (!allowsToHaveFakeOverride) {
         return false
     }
-    if (!session.visibilityChecker.isVisible(this, session, containerFile, listOf(), dispatchReceiver = null)) {
-        return false
-    }
-    return this.symbol.callableId.packageName == firClass.symbol.classId.packageFqName
+    return visibility.canSeePackage(symbol.callableId.packageName, firClass.symbol.classId.packageFqName)
 }
 

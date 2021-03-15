@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.checkers.FirDeclarationPresenter
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
-import org.jetbrains.kotlin.fir.analysis.checkers.findClosestFile
 import org.jetbrains.kotlin.fir.analysis.checkers.getContainingClass
 import org.jetbrains.kotlin.fir.analysis.checkers.unsubstitutedScope
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
@@ -43,7 +42,7 @@ object FirNotImplementedOverrideChecker : FirClassChecker() {
 
         val contributedMembers = collectCallableMembers(declaration, context)
         val baseSymbolsForFakeOverrides = declaration.calcBaseSymbolsForFakeOverrides(
-            contributedMembers, context.findClosestFile()!!, context.session, context.sessionHolder.scopeSession
+            contributedMembers, context.session, context.sessionHolder.scopeSession
         ).filter {
             val fir = it.fir
             fir is FirMemberDeclaration &&

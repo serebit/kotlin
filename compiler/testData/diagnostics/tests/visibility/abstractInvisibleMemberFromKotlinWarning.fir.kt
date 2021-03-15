@@ -15,7 +15,7 @@ abstract class Base {
 package impl
 import base.*
 
-class Impl : Base()
+<!ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED!>class Impl<!> : Base()
 
 fun foo() {
     Impl().foo()

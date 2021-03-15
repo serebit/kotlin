@@ -27,9 +27,9 @@ package impl
 import base.*
 import intermediate.*
 
-class ImplDirectFromBase : Base()
+<!ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED!>class ImplDirectFromBase<!> : Base()
 
-object ImplObjDirectFromBase : Base()
+<!ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED!>object ImplObjDirectFromBase<!> : Base()
 
 class ImplDirectFromBaseWithOverride : BaseWithOverride()
 
@@ -37,7 +37,7 @@ class ImplDirectFromBaseWithOverrid : Base() {
     override fun internalFoo(): String = ""
 }
 
-class ImplViaIntermediate : Intermediate()
+<!ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED!>class ImplViaIntermediate<!> : Intermediate()
 
 fun foo() {
     ImplDirectFromBase().foo()
