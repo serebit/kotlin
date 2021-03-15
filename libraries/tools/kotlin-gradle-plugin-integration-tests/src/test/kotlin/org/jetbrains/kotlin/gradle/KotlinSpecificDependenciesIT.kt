@@ -81,7 +81,7 @@ class KotlinSpecificDependenciesIT : BaseGradleIT() {
     fun testStdlibBasedOnJdk() = with(jvmProject()) {
         prepare()
         gradleBuildScript().modify { "$it\nkotlin.target.compilations[\"main\"].kotlinOptions { jvmTarget = \"1.6\" }" }
-        val version = defaultBuildOptions().kotlinVersion
+        val version = defaultBuildOptions().kotlinVersion.removeSuffix("SNAPSHOT")
         checkTaskCompileClasspath(
             "compileKotlin",
             listOf("kotlin-stdlib-$version"),
@@ -105,7 +105,7 @@ class KotlinSpecificDependenciesIT : BaseGradleIT() {
         // Check that the explicit stdlib overrides the plugin's choice of stdlib-jdk8
         checkTaskCompileClasspath(
             "compileKotlin",
-            listOf("kotlin-stdlib-${defaultBuildOptions().kotlinVersion}"),
+            listOf("kotlin-stdlib-${defaultBuildOptions().kotlinVersion.removeSuffix("SNAPSHOT")}"),
             listOf("kotlin-stdlib-jdk8")
         )
     }

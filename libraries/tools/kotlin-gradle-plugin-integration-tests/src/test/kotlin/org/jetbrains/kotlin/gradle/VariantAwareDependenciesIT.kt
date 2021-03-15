@@ -295,10 +295,15 @@ class VariantAwareDependenciesIT : BaseGradleIT() {
             )
 
             testResolveAllConfigurations {
-                assertContains(">> :customConfiguration --> kotlin-compiler-embeddable-${defaultBuildOptions().kotlinVersion}.jar")
+                val kotlinVersion = defaultBuildOptions().kotlinVersion.removeSuffix("SNAPSHOT")
+                assertContainsRegex(
+                    ">> :customConfiguration --> kotlin-compiler-embeddable-$kotlinVersion[0-9-.]*.jar".toRegex()
+                )
 
                 // Check that the transitive dependencies with 'runtime' scope are also available:
-                assertContains(">> :customConfiguration --> kotlin-script-runtime-${defaultBuildOptions().kotlinVersion}.jar")
+                assertContainsRegex(
+                    ">> :customConfiguration --> kotlin-script-runtime-$kotlinVersion[0-9-.]*.jar".toRegex()
+                )
             }
         }
 

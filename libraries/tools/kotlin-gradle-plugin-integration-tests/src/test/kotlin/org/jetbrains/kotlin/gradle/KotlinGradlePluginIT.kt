@@ -800,7 +800,8 @@ class KotlinGradleIT : BaseGradleIT() {
                 assertSuccessful()
                 assertContains(">> :compileClasspath --> kotlin-reflect-1.2.71.jar")
                 // Check that the default newer Kotlin version still wins for 'kotlin-stdlib':
-                assertContains(">> :compileClasspath --> kotlin-stdlib-${defaultBuildOptions().kotlinVersion}.jar")
+                val kotlinVersion = defaultBuildOptions().kotlinVersion.removeSuffix("SNAPSHOT")
+                assertContainsRegex(">> :compileClasspath --> kotlin-stdlib-$kotlinVersion([0-9.-])*.jar".toRegex())
             }
         }
 
@@ -1117,12 +1118,15 @@ class KotlinGradleIT : BaseGradleIT() {
 
     @Test
     fun testKtKt35942InternalsFromMainInTestViaTransitiveDepsAndroid() = with(
-        Project("kt-35942-android", GradleVersionRequired.FOR_MPP_SUPPORT)
+        Project(
+            projectName = "kt-35942-android",
+            gradleVersionRequirement = GradleVersionRequired.AtLeast("6.6.1")
+        )
     ) {
         build(
             ":lib1:compileDebugUnitTestKotlin",
             options = defaultBuildOptions().copy(
-                androidGradlePluginVersion = AGPVersion.v3_6_0,
+                androidGradlePluginVersion = AGPVersion.v4_2_0,
                 androidHome = KtTestUtil.findAndroidSdk(),
             ),
         ) {

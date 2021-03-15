@@ -1408,7 +1408,10 @@ class NewMultiplatformIT : BaseGradleIT() {
                 (Regex.escape(">> :app:testNonTransitiveStringNotationApiDependenciesMetadata") + " .*").toRegex().findAll(output).count()
             )
 
-                assertContains(">> :app:testNonTransitiveDependencyNotationApiDependenciesMetadata --> kotlin-reflect-${defaultBuildOptions().kotlinVersion}.jar")
+            val kotlinVersion = defaultBuildOptions().kotlinVersion.removeSuffix("SNAPSHOT")
+            assertContainsRegex(
+                ">> :app:testNonTransitiveDependencyNotationApiDependenciesMetadata --> kotlin-reflect-$kotlinVersion([0-9-.])*.jar".toRegex()
+            )
                 assertEquals(
                     1,
                     (Regex.escape(">> :app:testNonTransitiveStringNotationApiDependenciesMetadata") + " .*").toRegex().findAll(output)
