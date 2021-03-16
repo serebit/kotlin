@@ -994,13 +994,7 @@ interface IrBuilderExtension {
 
     fun IrClass.findWriteSelfMethod(): IrSimpleFunction? =
         declarations.filter { it is IrSimpleFunction && it.name == SerialEntityNames.WRITE_SELF_NAME && !it.isFakeOverride }
-            .let {
-                when (it.size) {
-                    0 -> null
-                    1 -> it.single() as IrSimpleFunction
-                    else -> error("only one write\$Self function should exist")
-                }
-            }
+            .takeUnless(Collection<*>::isEmpty)?.single() as IrSimpleFunction?
 
     fun IrBlockBodyBuilder.serializeAllProperties(
         generator: AbstractSerialGenerator,

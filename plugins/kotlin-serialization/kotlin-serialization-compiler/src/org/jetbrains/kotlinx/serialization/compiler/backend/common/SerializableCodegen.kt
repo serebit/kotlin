@@ -45,7 +45,7 @@ abstract class SerializableCodegen(
                 ).singleOrNull { function ->
                     function.kind == CallableMemberDescriptor.Kind.SYNTHESIZED &&
                             function.modality == Modality.FINAL &&
-                            function.returnType != null && function.returnType!!.isUnit()
+                            function.returnType?.isUnit() ?: false
                 } ?: return
             generateWriteSelfMethod(func)
         }
