@@ -121,22 +121,33 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
         }
 
         fun includeCompileClasspath(project: Project): Boolean? =
-            project.findProperty(INCLUDE_COMPILE_CLASSPATH)?.run { toString().toBoolean() }
+            project.findPropertySafe(INCLUDE_COMPILE_CLASSPATH)?.run { toString().toBoolean() }
 
         fun Project.isKaptKeepKdocCommentsInStubs(): Boolean {
             return !(hasProperty(KAPT_KEEP_KDOC_COMMENTS_IN_STUBS) && property(KAPT_KEEP_KDOC_COMMENTS_IN_STUBS) == "false")
         }
 
-        fun Project.classLoadersCacheSize(): Int = findProperty(CLASSLOADERS_CACHE_SIZE)?.toString()?.toInt() ?: 0
+        fun Project.classLoadersCacheSize(): Int = findPropertySafe(CLASSLOADERS_CACHE_SIZE)?.toString()?.toInt() ?: 0
 
         fun Project.disableClassloaderCacheForProcessors(): Set<String> {
-            val value = findProperty(CLASSLOADERS_CACHE_DISABLE_FOR_PROCESSORS)?.toString() ?: ""
+            val value = findPropertySafe(CLASSLOADERS_CACHE_DISABLE_FOR_PROCESSORS)?.toString() ?: ""
             return value
                 .split(",")
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
                 .toSet()
         }
+
+        /**
+         * In case [Project.findProperty] can throw exception, this version catch it and return null
+         */
+        private fun Project.findPropertySafe(propertyName: String): Any? =
+            try {
+                findProperty(propertyName)
+            } catch (ex: Exception) {
+                logger.warn("Error getting property $propertyName", ex)
+                null
+            }
 
         fun findMainKaptConfiguration(project: Project) = project.findKaptConfiguration(SourceSet.MAIN_SOURCE_SET_NAME)
 
@@ -537,7 +548,7 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
                 it.javacOptions = dslJavacOptions.get()
                 if (includeCompileClasspath && project.classLoadersCacheSize() > 0) {
                     project.logger.warn(
-                        "ClassLoaders cache can't be enabled together with AP discovery in compile classpath."
+                        "ClassLoaders cache can't be enabled together with AP discovery in compilation classpath."
                                 + "\nSet 'kapt.includeCompileClasspath = false' to disable discovery"
                     )
                 } else {
