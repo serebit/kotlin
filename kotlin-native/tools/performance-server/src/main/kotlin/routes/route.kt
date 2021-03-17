@@ -101,7 +101,7 @@ fun GoldenResultsInfo.toBenchmarksReport(): BenchmarksReport {
 
 // Build information provided from request.
 data class TCBuildInfo(val buildNumber: String, val branch: String, val startTime: String,
-                       val finishTime: String)
+                       val finishTime: String, val buildType: String?)
 
 data class BuildRegister(val buildId: String, val teamCityUser: String, val teamCityPassword: String,
                          val bundleSize: String?, val fileWithResult: String) {
@@ -125,6 +125,9 @@ data class BuildRegister(val buildId: String, val teamCityUser: String, val team
     fun sendTeamCityRequest(url: String, json: Boolean = false) =
             UrlNetworkConnector(teamCityUrl).sendRequest(RequestMethod.GET, url, teamCityUser, teamCityPassword, json)
 
+    fun sendTeamCityOptionalRequest(url: String, json: Boolean = false) =
+            UrlNetworkConnector(teamCityUrl).sendOptionalRequest(RequestMethod.GET, url, teamCityUser, teamCityPassword, json)
+
     fun getBranchName(project: String): Promise<String> {
         val url = "builds?locator=id:$buildId&fields=build(revisions(revision(vcsBranchName,vcs-root-instance)))"
         var branch: String? = null
@@ -144,6 +147,12 @@ data class BuildRegister(val buildId: String, val teamCityUser: String, val team
         }
     }
 
+    private fun getBuildType(): Promise<String?> {
+        val url = "$teamCityBuildUrl/resulting-properties/env.BUILD_TYPE"
+        return sendTeamCityOptionalRequest(url, false).then { response ->
+            response
+        }
+    }
 
     private fun format(timeValue: Int): String =
             if (timeValue < 10) "0$timeValue" else "$timeValue"
@@ -151,8 +160,9 @@ data class BuildRegister(val buildId: String, val teamCityUser: String, val team
     fun getBuildInformation(): Promise<TCBuildInfo> {
         return Promise.all(arrayOf(sendTeamCityRequest("$teamCityBuildUrl/number"),
                 getBranchName("Kotlin Native"),
-                sendTeamCityRequest("$teamCityBuildUrl/startDate"))).then { results ->
-            val (buildNumber, branch, startTime) = results
+                sendTeamCityRequest("$teamCityBuildUrl/startDate"),
+                getBuildType())).then { results ->
+            val (buildNumber, branch, startTime, buildType) = results
             val currentTime = Date()
             val timeZone = currentTime.getTimezoneOffset() / -60    // Convert to hours.
             // Get finish time as current time, because buid on TeamCity isn't finished.
@@ -163,25 +173,31 @@ data class BuildRegister(val buildId: String, val teamCityUser: String, val team
                     "${format(currentTime.getUTCMinutes())}" +
                     "${format(currentTime.getUTCSeconds())}" +
                     "${if (timeZone > 0) "+" else "-"}${format(timeZone)}${format(0)}"
-            TCBuildInfo(buildNumber, branch, startTime, finishTime)
+            TCBuildInfo(buildNumber!!, branch!!, startTime!!, finishTime, buildType)
         }
     }
 }
 
 // Get builds numbers in right order.
-internal fun <T> orderedValues(values: List<T>, buildElement: (T) -> String = { it -> it.toString() },
+internal fun <T> orderedValues(values: List<T>, buildElement: (T) -> Pair<String?, String>,
                       skipMilestones: Boolean = false) =
         values.sortedWith(
-                compareBy({ buildElement(it).substringBefore(".").toInt() },
-                        { buildElement(it).substringAfter(".").substringBefore("-").toDouble() },
-                        {
-                            if (skipMilestones) 0
-                            else if (buildElement(it).substringAfter("-").startsWith("M"))
-                                buildElement(it).substringAfter("M").substringBefore("-").toInt()
+                compareBy(
+                        { if (buildElement(it).first != null) 1 else 0 }, // Old builds have no set build type.
+                        { buildElement(it).second.substringBefore(".").toInt() },       // Kotlin version
+                        { buildElement(it).second.substringAfter(".").substringBefore("-").toDouble() },
+                        {  // Milestones and release candidates.
+                            val buildNumber = buildElement(it).second
+                            if (skipMilestones && buildElement(it).first == null ) 0
+                            else if (buildNumber.substringAfter("-").startsWith("M"))
+                                buildNumber.substringAfter("M").substringBefore("-").toInt()
+                            else if (buildNumber.substringAfter("-").startsWith("RC"))
+                                Int.MAX_VALUE / 2
                             else
                                 Int.MAX_VALUE
                         },
-                        { buildElement(it).substringAfterLast("-").toDouble() }
+                        { buildElement(it).first?.let { if (it == "DEV") 0 else 1 } ?: 0 }, // Develop and release builds
+                        { buildElement(it).second.substringAfterLast("-").toDouble() } // build counter
                 )
         )
 
@@ -226,7 +242,8 @@ fun router() {
                 // Build was rerun.
                 val buildNumber = "${currentBuildInfo.buildNumber}.$rerunNumber"
                 currentBuildInfo = BuildInfo(buildNumber, currentBuildInfo.startTime, currentBuildInfo.endTime,
-                        currentBuildInfo.commitsList, currentBuildInfo.branch, currentBuildInfo.agentInfo)
+                        currentBuildInfo.commitsList, currentBuildInfo.branch, currentBuildInfo.agentInfo,
+                        currentBuildInfo.buildType)
                 return getConsistentBuildInfo(currentBuildInfo, reports, rerunNumber + 1)
             }
         }
@@ -256,7 +273,7 @@ fun router() {
                         // Register build information.
                         var buildInfoInstance = getConsistentBuildInfo(
                                 BuildInfo(buildInfo.buildNumber, buildInfo.startTime, buildInfo.finishTime,
-                                        commitsList, buildInfo.branch, reports[0].env.machine.os),
+                                        commitsList, buildInfo.branch, reports[0].env.machine.os, buildInfo.buildType),
                                 reports
                         )
                         if (register.bundleSize != null) {
@@ -343,7 +360,7 @@ fun router() {
                 val buildNumbers = buildsInfo.map { it.buildNumber }
                 // Get number of failed benchmarks for each build.
                 benchmarksDispatcher.getFailuresNumber(target, buildNumbers).then { failures ->
-                    success(orderedValues(buildsInfo, { it -> it.buildNumber }, branch == "master").map {
+                    success(orderedValues(buildsInfo, { it -> it.buildType to it.buildNumber }, branch == "master").map {
                         Build(it.buildNumber, it.startTime, it.endTime, it.branch,
                                 it.commitsList.serializeFields(), failures[it.buildNumber] ?: 0)
                     })
@@ -498,7 +515,7 @@ fun router() {
                                     val jsonReport = artifactoryUrlConnector.sendRequest(RequestMethod.GET, accessFileUrl).await()
                                     var reports = convert(jsonReport, currentBuildNumber, target)
                                     val buildInfoRecord = BuildInfo(currentBuildNumber, infoParts[1], infoParts[2],
-                                            CommitsList.parse(infoParts[4]), infoParts[3], target)
+                                            CommitsList.parse(infoParts[4]), infoParts[3], target, null)
 
                                     val externalJsonReport = artifactoryUrlConnector.sendOptionalRequest(RequestMethod.GET, accessExternalFileUrl)
                                             .await()

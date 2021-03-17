@@ -43,15 +43,16 @@ internal fun getBuildsDescription(type: String?, branch: String?, agentInfo: Str
                 "sort": {"startTime": "desc" },
                 "query": {
                     "bool": {
+                        ${type?.let {"""
+                        "should": [
+                             { "regexp": { "buildNumber": { "value": "${if (it == "release")  
+                                ".*eap.*|.*release.*|.*rc.*" else ".*dev.*"}" } } 
+                             },
+                             { "match": { "buildType": "${it.toUpperCase()}" } }
+                         ],
+                        """} ?: ""}
                         "must": [ 
                             { "match": { "agentInfo": "$agentInfo" } }
-                            ${type?.let {
-        """,
-                            { "regexp": { "buildNumber": { "value": "${if (it == "release")
-            ".*eap.*|.*release.*|.*rc.*" else ".*dev.*"}" } } 
-                            }
-                            """
-    } ?: ""} 
                             ${beforeDate?.let {
         """,
                             { "range": { "startTime": { "lt": "$it" } } }
@@ -109,7 +110,10 @@ fun getBuildsNumbers(type: String?, branch: String?, agentInfo: String, buildsCo
                      buildInfoIndex: ElasticSearchIndex, beforeDate: String? = null, afterDate: String? = null) =
         getBuildsDescription(type, branch, agentInfo, buildInfoIndex, buildsCountToShow, beforeDate, afterDate, true)
                 .then { responseArray ->
-            responseArray.map { (it as JsonObject).getObject("_source").getPrimitive("buildNumber").content }
+            responseArray.map {
+                val build = (it as JsonObject).getObject("_source")
+                build.getPrimitiveOrNull("buildType")?.content to build.getPrimitive("buildNumber").content
+            }
         }
 
 // Get full builds information corresponding to machine and branch.
