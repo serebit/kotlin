@@ -258,7 +258,6 @@ open class SerializerIrGenerator(
 
         // Ignore comparing to default values of properties from superclass,
         // because we do not have access to their fields (and initializers), if superclass is in another module.
-        // In future, IR analogue of JVM's write$Self should be implemented.
         val superClass = serializableIrClass.getSuperClassOrAny().descriptor
         val ignoreIndexTo = if (superClass.isInternalSerializable) {
             bindingContext.serializablePropertiesFor(superClass).size

@@ -292,7 +292,9 @@ class SerializableIrGenerator(
             val propertyByParamReplacer: (ValueParameterDescriptor) -> IrExpression? =
                 createPropertyByParamReplacer(irClass, serializableProperties, objectToSerialize, bindingContext)
 
-            val initializerAdapter: (IrExpressionBody) -> IrExpression = createInitializerAdapter(irClass, propertyByParamReplacer)
+            // Since writeSelf is a static method, we have to replace all references to this in property initializers
+            val thisSymbol = irClass.thisReceiver!!.symbol
+            val initializerAdapter: (IrExpressionBody) -> IrExpression = createInitializerAdapter(irClass, propertyByParamReplacer, thisSymbol to { irGet(objectToSerialize) })
 
             // Compute offset of properties in superclass
             var ignoreIndexTo = -1
