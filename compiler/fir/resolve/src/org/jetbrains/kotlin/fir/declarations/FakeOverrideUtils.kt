@@ -12,15 +12,25 @@ import org.jetbrains.kotlin.fir.scopes.FirTypeScope
 import org.jetbrains.kotlin.fir.scopes.getDirectOverriddenFunctions
 import org.jetbrains.kotlin.fir.scopes.getDirectOverriddenProperties
 import org.jetbrains.kotlin.fir.scopes.unsubstitutedScope
+import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
+import org.jetbrains.kotlin.name.Name
 
 sealed class FirFakeOverrideStub(val baseSymbols: List<FirCallableSymbol<*>>) {
+    abstract val unwrappedSymbol: FirCallableSymbol<*>
+
     class FromScope(
         val symbol: FirCallableSymbol<*>,
         baseSymbols: List<FirCallableSymbol<*>>
-    ) : FirFakeOverrideStub(baseSymbols)
+    ) : FirFakeOverrideStub(baseSymbols) {
+        override val unwrappedSymbol: FirCallableSymbol<*>
+            get() = symbol.unwrapSubstitutionAndIntersectionOverrides()
+    }
 
-    class Trivial(baseSymbol: FirCallableSymbol<*>) : FirFakeOverrideStub(listOf(baseSymbol))
+    class Trivial(baseSymbol: FirCallableSymbol<*>) : FirFakeOverrideStub(listOf(baseSymbol)) {
+        override val unwrappedSymbol: FirCallableSymbol<*>
+            get() = baseSymbol.unwrapSubstitutionAndIntersectionOverrides()
+    }
 
     val baseSymbol get() = baseSymbols.single()
 }
@@ -36,8 +46,6 @@ fun FirClass<*>.computeFakeOverrideStubs(
     scopeSession: ScopeSession,
 ): List<FirFakeOverrideStub> {
     fakeOverrideStubs?.let { return it }
-    val result = mutableListOf<FirFakeOverrideStub>()
-    val classScope = unsubstitutedScope(session, scopeSession, withForcedTypeCalculator = false)
 
     val classLookupTag = symbol.toLookupTag()
     val realDeclarationNames = realDeclarations.mapNotNullTo(mutableSetOf()) l@{
@@ -51,39 +59,64 @@ fun FirClass<*>.computeFakeOverrideStubs(
         else callableDeclaration.symbol.callableId.callableName
     }
 
-    val superTypesCallableNames = classScope.getCallableNames().filter { it !in realDeclarationNames }
-    for (name in superTypesCallableNames) {
-        classScope.processFunctionsByName(name) { functionSymbol ->
-            // TODO: MANY_* as well as some conflict diagnostics
-            //if (functionSymbol is FirIntersectionOverrideFunctionSymbol)
-            //    functionSymbol.intersections.forEach(::checkFunctionSymbolAndAddToResult)
-            //else
-            computeFakeOverrideStubsForSymbol(
-                functionSymbol,
-                realDeclarations,
-                result,
-                classScope,
-                FirTypeScope::getDirectOverriddenFunctions
-            )
-        }
+    val result = mutableListOf<FirFakeOverrideStub>()
+    val useSiteMemberScope = unsubstitutedScope(session, scopeSession, withForcedTypeCalculator = false)
+    val superTypesCallableNames = useSiteMemberScope.getCallableNames().filter { it !in realDeclarationNames }
 
-        classScope.processPropertiesByName(name) { propertySymbol ->
-            // TODO: MANY_* as well as some conflict diagnostics
-            //if (propertySymbol is FirIntersectionOverridePropertySymbol)
-            //    propertySymbol.intersections.forEach(::checkPropertySymbolAndAddToResult)
-            //else
-            computeFakeOverrideStubsForSymbol(
-                propertySymbol,
-                realDeclarations,
-                result,
-                classScope,
-                FirTypeScope::getDirectOverriddenProperties
-            )
-        }
+    val realDeclarationSymbols = realDeclarations.filterIsInstance<FirSymbolOwner<*>>().mapTo(mutableSetOf(), FirSymbolOwner<*>::symbol)
+
+    for (name in superTypesCallableNames) {
+        computeFakeOverrideStubsForName(useSiteMemberScope, name, result, realDeclarationSymbols)
     }
 
     fakeOverrideStubs = result
     return result
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+fun FirClass<*>.computeFakeOverrideStubsForName(
+    name: Name,
+    scopeSession: ScopeSession
+): List<FirFakeOverrideStub> {
+    return buildList {
+        val useSiteMemberScope = unsubstitutedScope(session, scopeSession, withForcedTypeCalculator = true)
+        computeFakeOverrideStubsForName(useSiteMemberScope, name, this, realDeclarationSymbols = emptySet())
+    }
+}
+
+fun FirClass<*>.computeFakeOverrideStubsForName(
+    useSiteMemberScope: FirTypeScope,
+    name: Name,
+    result: MutableList<FirFakeOverrideStub>,
+    realDeclarationSymbols: Set<AbstractFirBasedSymbol<*>>
+) {
+    useSiteMemberScope.processFunctionsByName(name) { functionSymbol ->
+        // TODO: MANY_* as well as some conflict diagnostics
+        //if (functionSymbol is FirIntersectionOverrideFunctionSymbol)
+        //    functionSymbol.intersections.forEach(::checkFunctionSymbolAndAddToResult)
+        //else
+        computeFakeOverrideStubsForSymbol(
+            functionSymbol,
+            realDeclarationSymbols,
+            result,
+            useSiteMemberScope,
+            FirTypeScope::getDirectOverriddenFunctions
+        )
+    }
+
+    useSiteMemberScope.processPropertiesByName(name) { propertySymbol ->
+        // TODO: MANY_* as well as some conflict diagnostics
+        //if (propertySymbol is FirIntersectionOverridePropertySymbol)
+        //    propertySymbol.intersections.forEach(::checkPropertySymbolAndAddToResult)
+        //else
+        computeFakeOverrideStubsForSymbol(
+            propertySymbol,
+            realDeclarationSymbols,
+            result,
+            useSiteMemberScope,
+            FirTypeScope::getDirectOverriddenProperties
+        )
+    }
 }
 
 private inline fun <
@@ -91,15 +124,21 @@ private inline fun <
         reified S : FirCallableSymbol<D>
         > FirClass<*>.computeFakeOverrideStubsForSymbol(
     originalSymbol: FirCallableSymbol<*>,
-    realDeclarations: Collection<FirDeclaration>,
+    realDeclarationSymbols: Set<AbstractFirBasedSymbol<*>>,
     result: MutableList<FirFakeOverrideStub>,
     scope: FirTypeScope,
     computeDirectOverridden: FirTypeScope.(S) -> List<S>,
 ) {
-    if (originalSymbol !is S || originalSymbol.fir in realDeclarations) return
+    if (originalSymbol !is S) return
     val classLookupTag = symbol.toLookupTag()
     val originalDeclaration = originalSymbol.fir
+
     if (originalSymbol.dispatchReceiverClassOrNull() == classLookupTag && !originalDeclaration.origin.fromSupertypes) return
+    // Data classes' methods from Any (toString/equals/hashCode) are not handled by the line above because they have Any-typed dispatch receiver
+    // (there are no special FIR method for them, it's just fake overrides)
+    // But they are treated differently in IR (real declarations have already been declared before) and such methods are present among realDeclarationSymbols
+    if (originalSymbol in realDeclarationSymbols) return
+
     if (originalDeclaration.visibility == Visibilities.Private) return
     when {
         originalSymbol.shouldHaveComputedBaseSymbolsForClass(classLookupTag) -> {
@@ -107,7 +146,8 @@ private inline fun <
             // The current one is a FIR declaration for that fake override, and we can compute base symbols from it.
             result.add(
                 FirFakeOverrideStub.FromScope(
-                    originalSymbol, computeBaseSymbols(originalSymbol, computeDirectOverridden, scope, classLookupTag)
+                    originalSymbol,
+                    computeBaseSymbols(originalSymbol, computeDirectOverridden, scope, classLookupTag)
                 )
             )
         }
@@ -117,6 +157,16 @@ private inline fun <
             result.add(FirFakeOverrideStub.Trivial(originalSymbol))
         }
     }
+}
+
+private tailrec fun FirCallableSymbol<*>.unwrapSubstitutionAndIntersectionOverrides(): FirCallableSymbol<*> {
+    val originalForSubstitutionOverride = originalForSubstitutionOverride
+    if (originalForSubstitutionOverride != null) return originalForSubstitutionOverride.unwrapSubstitutionAndIntersectionOverrides()
+
+    val baseForIntersectionOverride = baseForIntersectionOverride
+    if (baseForIntersectionOverride != null) return baseForIntersectionOverride.unwrapSubstitutionAndIntersectionOverrides()
+
+    return this
 }
 
 private fun FirCallableMemberDeclaration<*>.allowsToHaveFakeOverrideIn(firClass: FirClass<*>): Boolean {

@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.fir.backend.generators
 
-import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.backend.*
 import org.jetbrains.kotlin.fir.declarations.*
@@ -13,7 +12,6 @@ import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.scopes.*
 import org.jetbrains.kotlin.fir.scopes.impl.FirFakeOverrideGenerator
-import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
@@ -24,7 +22,6 @@ import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.parentAsClass
-import org.jetbrains.kotlin.load.java.JavaDescriptorVisibilities
 import org.jetbrains.kotlin.name.Name
 
 class FakeOverrideGenerator(
@@ -43,12 +40,6 @@ class FakeOverrideGenerator(
         return conversionScope.withProperty(this, firProperty = null, f)
     }
 
-    private fun FirCallableMemberDeclaration<*>.allowsToHaveFakeOverrideIn(klass: FirClass<*>): Boolean {
-        if (!allowsToHaveFakeOverride) return false
-        if (this.visibility != JavaDescriptorVisibilities.PACKAGE_VISIBILITY) return true
-        return this.symbol.callableId.packageName == klass.symbol.classId.packageFqName
-    }
-
     private fun IrType.containsErrorType(): Boolean {
         return when (this) {
             is IrErrorType -> true
@@ -65,26 +56,11 @@ class FakeOverrideGenerator(
     }
 
     fun IrClass.getFakeOverrides(klass: FirClass<*>, realDeclarations: Collection<FirDeclaration>): List<IrDeclaration> {
-        val classLookupTag = klass.symbol.toLookupTag()
-        val realDeclarationNames = realDeclarations.mapNotNullTo(mutableSetOf()) l@{
-            val callableDeclaration = (it as? FirCallableMemberDeclaration<*>) ?: return@l null
-            // We may need to create a new fake override; compute base symbols; or deal with name conflicts.
-            if (callableDeclaration.symbol.shouldHaveComputedBaseSymbolsForClass(classLookupTag) ||
-                callableDeclaration.allowsToHaveFakeOverrideIn(klass) ||
-                callableDeclaration.visibility == Visibilities.Private
-            ) null
-            // Otherwise, bail out early based on the name of the contributed member declaration
-            else callableDeclaration.symbol.callableId.callableName
-        }
-
+        val fakeOverrideStubs = klass.computeFakeOverrideStubs(realDeclarations, session, scopeSession)
         val result = mutableListOf<IrDeclaration>()
-        val useSiteMemberScope = klass.unsubstitutedScope(session, scopeSession, withForcedTypeCalculator = true)
-        val superTypesCallableNames = useSiteMemberScope.getCallableNames().filter { it !in realDeclarationNames }
-
-        val realDeclarationSymbols = realDeclarations.filterIsInstance<FirSymbolOwner<*>>().mapTo(mutableSetOf(), FirSymbolOwner<*>::symbol)
-
-        for (name in superTypesCallableNames) {
-            generateFakeOverridesForName(this, useSiteMemberScope, name, klass, result, realDeclarationSymbols)
+        val isLocal = klass !is FirRegularClass || klass.isLocal
+        for (fakeOverrideStub in fakeOverrideStubs) {
+            createFakeOverrideForStub(klass, irClass = this, isLocal, fakeOverrideStub, result)
         }
         return result
     }
@@ -95,34 +71,31 @@ class FakeOverrideGenerator(
         name: Name,
         firClass: FirClass<*>
     ): List<IrDeclaration> = buildList {
-        val useSiteMemberScope = firClass.unsubstitutedScope(session, scopeSession, withForcedTypeCalculator = true)
-        generateFakeOverridesForName(
-            irClass, useSiteMemberScope, name, firClass, this,
-            // This parameter is only needed for data-class methods that is irrelevant for lazy library classes
-            realDeclarationSymbols = emptySet()
-        )
+        val fakeOverrideStubs = firClass.computeFakeOverrideStubsForName(name, scopeSession)
+        val isLocal = firClass !is FirRegularClass || firClass.isLocal
+        for (fakeOverrideStub in fakeOverrideStubs) {
+            createFakeOverrideForStub(firClass, irClass, isLocal, fakeOverrideStub, this)
+        }
     }
 
-    private fun generateFakeOverridesForName(
+    private fun createFakeOverrideForStub(
+        klass: FirClass<*>,
         irClass: IrClass,
-        useSiteMemberScope: FirTypeScope,
-        name: Name,
-        firClass: FirClass<*>,
+        isLocal: Boolean,
+        fakeOverrideStub: FirFakeOverrideStub,
         result: MutableList<IrDeclaration>,
-        realDeclarationSymbols: Set<AbstractFirBasedSymbol<*>>
     ) {
-        val isLocal = firClass !is FirRegularClass || firClass.isLocal
-        useSiteMemberScope.processFunctionsByName(name) { functionSymbol ->
-            createFakeOverriddenIfNeeded(
-                firClass, irClass, isLocal, functionSymbol,
+        when (fakeOverrideStub.baseSymbols.first()) {
+            is FirNamedFunctionSymbol -> createFakeOverrideForStub(
+                irClass, isLocal, fakeOverrideStub,
                 declarationStorage::getCachedIrFunction,
                 declarationStorage::createIrFunction,
                 createFakeOverrideSymbol = { firFunction, callableSymbol ->
                     FirFakeOverrideGenerator.createSubstitutionOverrideFunction(
                         session, firFunction, callableSymbol,
-                        newDispatchReceiverType = firClass.defaultType(),
-                        derivedClassId = firClass.symbol.classId,
-                        isExpect = (firClass as? FirRegularClass)?.isExpect == true
+                        newDispatchReceiverType = klass.defaultType(),
+                        derivedClassId = klass.symbol.classId,
+                        isExpect = (klass as? FirRegularClass)?.isExpect == true
                     )
                 },
                 baseFunctionSymbols,
@@ -130,23 +103,17 @@ class FakeOverrideGenerator(
                 containsErrorTypes = { irFunction ->
                     irFunction.returnType.containsErrorType() || irFunction.valueParameters.any { it.type.containsErrorType() }
                 },
-                realDeclarationSymbols,
-                FirTypeScope::getDirectOverriddenFunctions,
-                useSiteMemberScope,
             )
-        }
-
-        useSiteMemberScope.processPropertiesByName(name) { propertySymbol ->
-            createFakeOverriddenIfNeeded(
-                firClass, irClass, isLocal, propertySymbol,
+            is FirPropertySymbol -> createFakeOverrideForStub(
+                irClass, isLocal, fakeOverrideStub,
                 declarationStorage::getCachedIrProperty,
                 declarationStorage::createIrProperty,
                 createFakeOverrideSymbol = { firProperty, callableSymbol ->
                     FirFakeOverrideGenerator.createSubstitutionOverrideProperty(
                         session, firProperty, callableSymbol,
-                        newDispatchReceiverType = firClass.defaultType(),
-                        derivedClassId = firClass.symbol.classId,
-                        isExpect = (firClass as? FirRegularClass)?.isExpect == true
+                        newDispatchReceiverType = klass.defaultType(),
+                        derivedClassId = klass.symbol.classId,
+                        isExpect = (klass as? FirRegularClass)?.isExpect == true
                     )
                 },
                 basePropertySymbols,
@@ -155,11 +122,59 @@ class FakeOverrideGenerator(
                     irProperty.backingField?.type?.containsErrorType() == true ||
                             irProperty.getter?.returnType?.containsErrorType() == true
                 },
-                realDeclarationSymbols,
-                FirTypeScope::getDirectOverriddenProperties,
-                useSiteMemberScope,
             )
         }
+    }
+
+    private inline fun <reified D : FirCallableMemberDeclaration<D>, reified S : FirCallableSymbol<D>, reified I : IrDeclaration> createFakeOverrideForStub(
+        irClass: IrClass,
+        isLocal: Boolean,
+        fakeOverrideStub: FirFakeOverrideStub,
+        cachedIrDeclaration: (D, (D) -> IdSignature?) -> I?,
+        createIrDeclaration: (D, irParent: IrClass, thisReceiverOwner: IrClass?, origin: IrDeclarationOrigin, isLocal: Boolean) -> I,
+        createFakeOverrideSymbol: (D, S) -> S,
+        baseSymbols: MutableMap<I, List<S>>,
+        result: MutableList<in I>,
+        containsErrorTypes: (I) -> Boolean,
+    ) {
+        val unwrappedSymbol = fakeOverrideStub.unwrappedSymbol
+        val (fakeOverrideFirDeclaration, baseFirSymbolsForFakeOverride) = when (fakeOverrideStub) {
+            is FirFakeOverrideStub.FromScope -> {
+                // Substitution or intersection case
+                // We have already a FIR declaration for such fake override
+                fakeOverrideStub.symbol.fir to fakeOverrideStub.baseSymbols
+            }
+            is FirFakeOverrideStub.Trivial -> {
+                // Trivial fake override case
+                // We've got no relevant declaration in FIR world for such a fake override in current class, thus we're creating it here
+                val originalSymbol = fakeOverrideStub.baseSymbol as S
+                val originalDeclaration = originalSymbol.fir
+                val fakeOverrideSymbol = createFakeOverrideSymbol(originalDeclaration, unwrappedSymbol as S)
+                declarationStorage.saveFakeOverrideInClass(irClass, originalDeclaration, fakeOverrideSymbol.fir)
+                classifierStorage.preCacheTypeParameters(originalDeclaration)
+                fakeOverrideSymbol.fir to listOf(originalSymbol)
+            }
+        }
+        val irDeclaration = cachedIrDeclaration(fakeOverrideFirDeclaration as D) {
+            // Sometimes we can have clashing here when FIR substitution/intersection override
+            // have the same signature.
+            // Now we avoid this problem by signature caching,
+            // so both FIR overrides correspond to one IR fake override
+            signatureComposer.composeSignature(fakeOverrideFirDeclaration)
+        }?.takeIf { it.parent == irClass }
+            ?: createIrDeclaration(
+                fakeOverrideFirDeclaration,
+                irClass,
+                /* thisReceiverOwner = */ declarationStorage.findIrParent(unwrappedSymbol.fir) as? IrClass,
+                IrDeclarationOrigin.FAKE_OVERRIDE,
+                isLocal
+            )
+        if (containsErrorTypes(irDeclaration)) {
+            return
+        }
+        @Suppress("UNCHECKED_CAST")
+        baseSymbols[irDeclaration] = baseFirSymbolsForFakeOverride as List<S>
+        result += irDeclaration
     }
 
     internal fun calcBaseSymbolsForFakeOverrideFunction(
@@ -176,75 +191,6 @@ class FakeOverrideGenerator(
                 listOf(originalSymbol)
             }
         baseFunctionSymbols[fakeOverride] = baseFirSymbolsForFakeOverride
-    }
-
-    private inline fun <reified D : FirCallableMemberDeclaration<D>, reified S : FirCallableSymbol<D>, reified I : IrDeclaration> createFakeOverriddenIfNeeded(
-        klass: FirClass<*>,
-        irClass: IrClass,
-        isLocal: Boolean,
-        originalSymbol: FirCallableSymbol<*>,
-        cachedIrDeclaration: (D, (D) -> IdSignature?) -> I?,
-        createIrDeclaration: (D, irParent: IrClass, thisReceiverOwner: IrClass?, origin: IrDeclarationOrigin, isLocal: Boolean) -> I,
-        createFakeOverrideSymbol: (D, S) -> S,
-        baseSymbols: MutableMap<I, List<S>>,
-        result: MutableList<in I>,
-        containsErrorTypes: (I) -> Boolean,
-        realDeclarationSymbols: Set<AbstractFirBasedSymbol<*>>,
-        computeDirectOverridden: FirTypeScope.(S) -> List<S>,
-        scope: FirTypeScope,
-    ) {
-        if (originalSymbol !is S) return
-        val classLookupTag = klass.symbol.toLookupTag()
-        val originalDeclaration = originalSymbol.fir
-
-        if (originalSymbol.dispatchReceiverClassOrNull() == classLookupTag && !originalDeclaration.origin.fromSupertypes) return
-        // Data classes' methods from Any (toString/equals/hashCode) are not handled by the line above because they have Any-typed dispatch receiver
-        // (there are no special FIR method for them, it's just fake overrides)
-        // But they are treated differently in IR (real declarations have already been declared before) and such methods are present among realDeclarationSymbols
-        if (originalSymbol in realDeclarationSymbols) return
-
-        if (originalDeclaration.visibility == Visibilities.Private) return
-
-        val origin = IrDeclarationOrigin.FAKE_OVERRIDE
-        val baseSymbol = originalSymbol.unwrapSubstitutionAndIntersectionOverrides() as S
-
-        val (fakeOverrideFirDeclaration, baseFirSymbolsForFakeOverride) = when {
-            originalSymbol.shouldHaveComputedBaseSymbolsForClass(classLookupTag) -> {
-                // Substitution or intersection case
-                // We have already a FIR declaration for such fake override
-                originalDeclaration to computeBaseSymbols(originalSymbol, computeDirectOverridden, scope, classLookupTag)
-            }
-            originalDeclaration.allowsToHaveFakeOverrideIn(klass) -> {
-                // Trivial fake override case
-                // We've got no relevant declaration in FIR world for such a fake override in current class, thus we're creating it here
-                val fakeOverrideSymbol = createFakeOverrideSymbol(originalDeclaration, baseSymbol)
-                declarationStorage.saveFakeOverrideInClass(irClass, originalDeclaration, fakeOverrideSymbol.fir)
-                classifierStorage.preCacheTypeParameters(originalDeclaration)
-                fakeOverrideSymbol.fir to listOf(originalSymbol)
-            }
-            else -> {
-                return
-            }
-        }
-        val irDeclaration = cachedIrDeclaration(fakeOverrideFirDeclaration) {
-            // Sometimes we can have clashing here when FIR substitution/intersection override
-            // have the same signature.
-            // Now we avoid this problem by signature caching,
-            // so both FIR overrides correspond to one IR fake override
-            signatureComposer.composeSignature(fakeOverrideFirDeclaration)
-        }?.takeIf { it.parent == irClass }
-            ?: createIrDeclaration(
-                fakeOverrideFirDeclaration,
-                irClass,
-                /* thisReceiverOwner = */ declarationStorage.findIrParent(baseSymbol.fir) as? IrClass,
-                origin,
-                isLocal
-            )
-        if (containsErrorTypes(irDeclaration)) {
-            return
-        }
-        baseSymbols[irDeclaration] = baseFirSymbolsForFakeOverride
-        result += irDeclaration
     }
 
     internal fun getOverriddenSymbolsForFakeOverride(function: IrSimpleFunction): List<IrSimpleFunctionSymbol>? {

@@ -247,17 +247,6 @@ private fun ConstantValueKind<*>.toIrConstKind(): IrConstKind<*> = when (this) {
     ConstantValueKind.IntegerLiteral, ConstantValueKind.UnsignedIntegerLiteral -> throw IllegalArgumentException()
 }
 
-
-internal tailrec fun FirCallableSymbol<*>.unwrapSubstitutionAndIntersectionOverrides(): FirCallableSymbol<*> {
-    val originalForSubstitutionOverride = originalForSubstitutionOverride
-    if (originalForSubstitutionOverride != null) return originalForSubstitutionOverride.unwrapSubstitutionAndIntersectionOverrides()
-
-    val baseForIntersectionOverride = baseForIntersectionOverride
-    if (baseForIntersectionOverride != null) return baseForIntersectionOverride.unwrapSubstitutionAndIntersectionOverrides()
-
-    return this
-}
-
 internal tailrec fun FirCallableSymbol<*>.unwrapCallRepresentative(root: FirCallableSymbol<*> = this): FirCallableSymbol<*> {
     val fir = fir
     if (fir is FirConstructor) {
