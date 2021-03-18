@@ -143,19 +143,20 @@ class BenchmarksIndexesDispatcher(connector: ElasticSearchConnector, val feature
                     val valuesMap = buildNumbers?.map {
                         it to arrayOfNulls<Double?>(samples.size)
                     }?.toMap()?.toMutableMap() ?: mutableMapOf<Pair<String?, String>, Array<Double?>>()
+                    val buildTypes = buildNumbers?.map { it.second to it.first }?.toMap() ?: emptyMap()
                     // Parse and save values in requested order.
                     results.forEach {
                         val element = it as JsonObject
                         val build = element.getObject("_source").getPrimitive("buildNumber").content
-                        val buildType = element.getObject("_source").getPrimitiveOrNull("buildType")?.content
-                        buildNumbers?.let { valuesMap.getOrPut(buildType to build) { arrayOfNulls<Double?>(samples.size) } }
+                        val buildInfo = buildTypes[build] to build
+                        buildNumbers?.let { valuesMap.getOrPut(buildInfo) { arrayOfNulls<Double?>(samples.size) } }
                         element
                                 .getObject("inner_hits")
                                 .getObject("benchmarks")
                                 .getObject("hits")
                                 .getArray("hits").forEach {
                                     val source = (it as JsonObject).getObject("_source")
-                                    valuesMap[build]!![indexesMap[source.getPrimitive("name").content]!!] =
+                                    valuesMap[buildInfo]!![indexesMap[source.getPrimitive("name").content]!!] =
                                             source.getPrimitive(if (normalize) "normalizedScore" else "score").double
                                 }
 

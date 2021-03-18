@@ -44,12 +44,17 @@ internal fun getBuildsDescription(type: String?, branch: String?, agentInfo: Str
                 "query": {
                     "bool": {
                         ${type?.let {"""
-                        "should": [
-                             { "regexp": { "buildNumber": { "value": "${if (it == "release")  
-                                ".*eap.*|.*release.*|.*rc.*" else ".*dev.*"}" } } 
-                             },
-                             { "match": { "buildType": "${it.toUpperCase()}" } }
-                         ],
+                        "must": [
+                            { "bool": {
+                                "should": [
+                                     { "regexp": { "buildNumber": { "value": "${if (it == "release")  
+                                        ".*eap.*|.*release.*|.*rc.*" else ".*dev.*"}" } } 
+                                     },
+                                     { "match": { "buildType": "${it.toUpperCase()}" } }
+                                 ]
+                            }},
+                            { "bool": {
+                        
                         """} ?: ""}
                         "must": [ 
                             { "match": { "agentInfo": "$agentInfo" } }
@@ -69,6 +74,9 @@ internal fun getBuildsDescription(type: String?, branch: String?, agentInfo: Str
                             """
     } ?: ""}
                         ]
+                        ${type?.let {"""
+                            }}]
+                        """}}
                     }
                 }
             }

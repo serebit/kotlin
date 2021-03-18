@@ -426,7 +426,8 @@ fun router() {
                     // Get geometric mean for samples.
                     benchmarksDispatcher.getGeometricMean(metric, target, buildNumbers, normalize,
                             excludeNames).then { geoMeansValues ->
-                        success(orderedValues(geoMeansValues, { it -> it.first }, branch == "master"))
+                        success(orderedValues(geoMeansValues, { it -> it.first }, branch == "master")
+                                .map { it.first.second to it.second })
                     }.catch { errorResponse ->
                         println("Error during getting geometric mean")
                         println(errorResponse)
@@ -435,7 +436,8 @@ fun router() {
                 } else {
                     benchmarksDispatcher.getSamples(metric, target, samples, buildsCountToShow, buildNumbers, normalize)
                             .then { geoMeansValues ->
-                        success(orderedValues(geoMeansValues, { it -> it.first }, branch == "master"))
+                        success(orderedValues(geoMeansValues, { it -> it.first }, branch == "master")
+                                .map { it.first.second to it.second })
                     }.catch {
                         println("Error during getting samples")
                         reject()
