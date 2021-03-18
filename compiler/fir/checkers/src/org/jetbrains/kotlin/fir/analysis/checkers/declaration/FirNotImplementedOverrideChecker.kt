@@ -44,6 +44,7 @@ object FirNotImplementedOverrideChecker : FirClassChecker() {
         val trivialFakeOverrideStubs = declaration.computeFakeOverrideStubs(
             contributedMembers, context.session, context.sessionHolder.scopeSession
         ).filter {
+            // TODO: FirFakeOverrideStub.FromScope
             if (it !is FirFakeOverrideStub.Trivial) return@filter false
             val fir = it.baseSymbol.fir
             fir is FirMemberDeclaration &&
