@@ -202,7 +202,7 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
                         isNullable = false
                     )
                 }.also {
-                    session.lookupTracker?.recordTypeResolve(it, propertyReferenceAccess.source ?: source, null)
+                    session.lookupTracker?.recordTypeResolveAsLookup(it, propertyReferenceAccess.source ?: source, null)
                 }
             )
         }
@@ -720,14 +720,14 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
                     }
                 lambda.replaceReturnTypeRef(
                     lambda.returnTypeRef.resolvedTypeFromPrototype(returnType).also {
-                        session.lookupTracker?.recordTypeResolve(it, lambda.source, null)
+                        session.lookupTracker?.recordTypeResolveAsLookup(it, lambda.source, null)
                     }
                 )
                 lambda.replaceTypeRef(
                     lambda.constructFunctionalTypeRef(
                         isSuspend = expectedTypeRef.coneTypeSafe<ConeKotlinType>()?.isSuspendFunctionType(session) == true
                     ).also {
-                        session.lookupTracker?.recordTypeResolve(it, lambda.source, null)
+                        session.lookupTracker?.recordTypeResolveAsLookup(it, lambda.source, null)
                     }
                 )
                 lambda.addReturn().compose()

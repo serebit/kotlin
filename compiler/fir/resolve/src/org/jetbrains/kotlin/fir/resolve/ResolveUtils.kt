@@ -300,7 +300,7 @@ fun FirCheckedSafeCallSubject.propagateTypeFromOriginalReceiver(nullableReceiver
 
     val resolvedTypeRef = typeRef.resolvedTypeFromPrototype(expandedReceiverType.makeConeTypeDefinitelyNotNullOrNotNull())
     replaceTypeRef(resolvedTypeRef)
-    session.lookupTracker?.recordTypeResolve(resolvedTypeRef, source, null)
+    session.lookupTracker?.recordTypeResolveAsLookup(resolvedTypeRef, source, null)
 }
 
 fun FirSafeCallExpression.propagateTypeFromQualifiedAccessAfterNullCheck(
@@ -319,7 +319,7 @@ fun FirSafeCallExpression.propagateTypeFromQualifiedAccessAfterNullCheck(
 
     val resolvedTypeRef = typeRef.resolvedTypeFromPrototype(resultingType)
     replaceTypeRef(resolvedTypeRef)
-    session.lookupTracker?.recordTypeResolve(resolvedTypeRef, source, null)
+    session.lookupTracker?.recordTypeResolveAsLookup(resolvedTypeRef, source, null)
 }
 
 private fun FirQualifiedAccess.expressionTypeOrUnitForAssignment(): ConeKotlinType? {

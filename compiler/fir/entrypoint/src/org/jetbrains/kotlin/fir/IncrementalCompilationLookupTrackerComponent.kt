@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.incremental.components.Position
 import org.jetbrains.kotlin.incremental.components.ScopeKind
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.utils.SmartList
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -45,7 +46,7 @@ class IncrementalCompilationLookupTrackerComponent(
     private val lock = ReentrantLock()
     private var lookupsToTypes = MultiMap.createSet<FirSourceElement, Lookup>()
 
-    override fun recordLookup(name: Name, source: FirSourceElement?, fileSource: FirSourceElement?, inScopes: List<String>) {
+    override fun recordLookup(name: Name, inScopes: List<String>, source: FirSourceElement?, fileSource: FirSourceElement?) {
         if (inScopes.isEmpty()) return
         val definedSource = fileSource ?: source ?: throw AssertionError("Cannot record lookup for \"$name\" without a source")
         val lookup = Lookup(name, inScopes)
@@ -53,6 +54,11 @@ class IncrementalCompilationLookupTrackerComponent(
             lookupsToTypes.putValue(definedSource, lookup)
         }
     }
+
+    override fun recordLookup(name: Name, inScope: String, source: FirSourceElement?, fileSource: FirSourceElement?) {
+        recordLookup(name, SmartList(inScope), source, fileSource)
+    }
+
 
     override fun flushLookups() {
         val lookups = lock.withLock {
@@ -112,7 +118,7 @@ class DebugIncrementalCompilationLookupTrackerComponent(
     private val lock = ReentrantLock()
     private var lookups = ArrayList<Lookup>()
 
-    override fun recordLookup(name: Name, source: FirSourceElement?, fileSource: FirSourceElement?, inScopes: List<String>) {
+    override fun recordLookup(name: Name, inScopes: List<String>, source: FirSourceElement?, fileSource: FirSourceElement?) {
         if (inScopes.isEmpty()) return
         if (fileSource == null && source == null) throw AssertionError("Cannot record lookup for \"$name\" without a source")
         val lookup = Lookup(name, inScopes, source, fileSource)
@@ -120,6 +126,11 @@ class DebugIncrementalCompilationLookupTrackerComponent(
             lookups.add(lookup)
         }
     }
+
+    override fun recordLookup(name: Name, inScope: String, source: FirSourceElement?, fileSource: FirSourceElement?) {
+        recordLookup(name, SmartList(inScope), source, fileSource)
+    }
+
 
     override fun flushLookups() {
         if (lookups.isEmpty()) return

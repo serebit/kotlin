@@ -64,7 +64,7 @@ open class FirImportResolveTransformer protected constructor(
 
         val parentFqName = fqName.parent()
         currentFile?.let {
-            session.lookupTracker?.recordLookup(fqName.shortName(), import.source, it.source, parentFqName.asString())
+            session.lookupTracker?.recordLookup(fqName.shortName(), parentFqName.asString(), import.source, it.source)
         }
         return transformImportForFqName(parentFqName, import)
     }

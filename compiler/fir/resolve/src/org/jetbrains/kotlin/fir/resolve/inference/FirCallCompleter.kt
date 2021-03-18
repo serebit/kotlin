@@ -5,15 +5,13 @@
 
 package org.jetbrains.kotlin.fir.resolve.inference
 
-import org.jetbrains.kotlin.fir.FirFakeSourceElementKind
+import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.declarations.FirAnonymousFunction
 import org.jetbrains.kotlin.fir.declarations.FirDeclarationOrigin
 import org.jetbrains.kotlin.fir.declarations.builder.buildValueParameter
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirResolvable
 import org.jetbrains.kotlin.fir.expressions.FirStatement
-import org.jetbrains.kotlin.fir.fakeElement
-import org.jetbrains.kotlin.fir.lookupTracker
 import org.jetbrains.kotlin.fir.resolve.ResolutionMode
 import org.jetbrains.kotlin.fir.resolve.calls.Candidate
 import org.jetbrains.kotlin.fir.resolve.calls.FirNamedReferenceWithCandidate
@@ -27,7 +25,6 @@ import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBod
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirBodyResolveTransformer
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.resultType
 import org.jetbrains.kotlin.fir.resolve.typeFromCallee
-import org.jetbrains.kotlin.fir.resolvedTypeFromPrototype
 import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
@@ -65,7 +62,7 @@ class FirCallCompleter(
         if (call is FirExpression) {
             val resolvedTypeRef = typeRef.resolvedTypeFromPrototype(initialType)
             call.resultType = resolvedTypeRef
-            session.lookupTracker?.recordTypeResolve(resolvedTypeRef, call.source, null)
+            session.lookupTracker?.recordTypeResolveAsLookup(resolvedTypeRef, call.source, null)
         }
 
         if (expectedTypeRef is FirResolvedTypeRef) {
@@ -214,13 +211,13 @@ class FirCallCompleter(
             lambdaArgument.valueParameters.forEachIndexed { index, parameter ->
                 val newReturnTypeRef = parameter.returnTypeRef.resolvedTypeFromPrototype(parameters[index].approximateLambdaInputType())
                 parameter.replaceReturnTypeRef(newReturnTypeRef)
-                session.lookupTracker?.recordTypeResolve(newReturnTypeRef, parameter.source, null)
+                session.lookupTracker?.recordTypeResolveAsLookup(newReturnTypeRef, parameter.source, null)
             }
 
             lambdaArgument.replaceValueParameters(lambdaArgument.valueParameters + listOfNotNull(itParam))
             lambdaArgument.replaceReturnTypeRef(
                 expectedReturnTypeRef?.also {
-                    session.lookupTracker?.recordTypeResolve(it, lambdaArgument.source, null)
+                    session.lookupTracker?.recordTypeResolveAsLookup(it, lambdaArgument.source, null)
                 } ?: components.noExpectedType
             )
 

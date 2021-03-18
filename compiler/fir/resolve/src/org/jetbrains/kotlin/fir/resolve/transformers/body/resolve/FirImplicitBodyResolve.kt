@@ -219,7 +219,7 @@ private class ReturnTypeCalculatorWithJump(
         if (declaration.isIntersectionOverride) {
             val result = tryCalculateReturnType(declaration.symbol.baseForIntersectionOverride!!.fir)
             declaration.replaceReturnTypeRef(result)
-            session.lookupTracker?.recordTypeResolve(result, declaration.source, null)
+            session.lookupTracker?.recordTypeResolveAsLookup(result, declaration.source, null)
             return result
         }
 
@@ -228,7 +228,7 @@ private class ReturnTypeCalculatorWithJump(
             tryCalculateReturnType(overriddenDeclaration)
             val result = FakeOverrideTypeCalculator.Forced.computeReturnType(declaration)
             (declaration.returnTypeRef as? FirResolvedTypeRef)?.let {
-                session.lookupTracker?.recordTypeResolve(it, declaration.source, null)
+                session.lookupTracker?.recordTypeResolveAsLookup(it, declaration.source, null)
             }
             return result
         }

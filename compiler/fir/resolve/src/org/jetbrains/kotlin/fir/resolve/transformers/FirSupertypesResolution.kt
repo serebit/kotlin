@@ -8,16 +8,13 @@ package org.jetbrains.kotlin.fir.resolve.transformers
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
-import org.jetbrains.kotlin.fir.FirElement
-import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.diagnostics.ConeSimpleDiagnostic
 import org.jetbrains.kotlin.fir.expressions.FirStatement
 import org.jetbrains.kotlin.fir.extensions.extensionService
 import org.jetbrains.kotlin.fir.extensions.predicateBasedProvider
 import org.jetbrains.kotlin.fir.extensions.supertypeGenerators
-import org.jetbrains.kotlin.fir.lookupTracker
-import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.dfa.cfg.isLocalClassOrAnonymousObject
 import org.jetbrains.kotlin.fir.resolve.diagnostics.ConeTypeParameterSupertype
@@ -290,7 +287,7 @@ private class FirSupertypeResolverVisitor(
                 session.lookupTracker?.let {
                     val fileSource = session.firProvider.getFirClassifierContainerFile(classLikeDeclaration.symbol).source
                     for (supertypeRef in supertypeRefs) {
-                        it.recordLookup(supertypeRef, fileSource, scope.scopeLookupNames)
+                        it.recordTypeLookup(supertypeRef, scope.scopeLookupNames, fileSource)
                     }
                 }
             }

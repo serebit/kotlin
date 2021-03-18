@@ -432,8 +432,18 @@ private fun Candidate.prepareExpectedType(
     val expectedType =
         getExpectedTypeWithSAMConversion(session, scopeSession, argument, basicExpectedType, context)?.also {
             parameter.returnTypeRef.coneType.lowerBoundIfFlexible().classId?.takeIf { !it.isLocal }?.let {
-                session.lookupTracker?.recordLookup(SAM_LOOKUP_NAME, callInfo.callSite.source, callInfo.containingFile.source, it.asString())
-                session.lookupTracker?.recordLookup(it.shortClassName, callInfo.callSite.source, callInfo.containingFile.source, it.packageFqName.asString())
+                session.lookupTracker?.recordLookup(
+                    SAM_LOOKUP_NAME,
+                    it.asString(),
+                    callInfo.callSite.source,
+                    callInfo.containingFile.source
+                )
+                session.lookupTracker?.recordLookup(
+                    it.shortClassName,
+                    it.packageFqName.asString(),
+                    callInfo.callSite.source,
+                    callInfo.containingFile.source
+                )
             }
         } ?: basicExpectedType
     return this.substitutor.substituteOrSelf(expectedType)

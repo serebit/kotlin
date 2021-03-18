@@ -199,7 +199,7 @@ object FirConflictsChecker : FirBasicDeclarationChecker() {
             }
             if (declarationName != null) {
                 session.lookupTracker?.recordLookup(
-                    declarationName, declaration.source, containingFile.source, containingFile.packageFqName.asString()
+                    declarationName, containingFile.packageFqName.asString(), declaration.source, containingFile.source
                 )
             }
         }
