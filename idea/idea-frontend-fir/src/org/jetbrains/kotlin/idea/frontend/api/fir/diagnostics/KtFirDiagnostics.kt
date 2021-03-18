@@ -389,6 +389,12 @@ sealed class KtFirDiagnostic<PSI: PsiElement> : KtDiagnosticWithPsi<PSI> {
         override val diagnosticClass get() = RedundantOpenInInterface::class
     }
 
+    abstract class WrongModifierTarget : KtFirDiagnostic<PsiElement>() {
+        override val diagnosticClass get() = WrongModifierTarget::class
+        abstract val modifier: KtModifierKeywordToken
+        abstract val target: String
+    }
+
     abstract class InlineClassNotTopLevel : KtFirDiagnostic<KtDeclaration>() {
         override val diagnosticClass get() = InlineClassNotTopLevel::class
     }
@@ -449,12 +455,6 @@ sealed class KtFirDiagnostic<PSI: PsiElement> : KtDiagnosticWithPsi<PSI> {
 
     abstract class ValueClassCannotBeCloneable : KtFirDiagnostic<KtDeclaration>() {
         override val diagnosticClass get() = ValueClassCannotBeCloneable::class
-    }
-
-    abstract class WrongModifierTarget : KtFirDiagnostic<PsiElement>() {
-        override val diagnosticClass get() = WrongModifierTarget::class
-        abstract val modifier: KtModifierKeywordToken
-        abstract val target: String
     }
 
     abstract class NoneApplicable : KtFirDiagnostic<PsiElement>() {
@@ -616,6 +616,30 @@ sealed class KtFirDiagnostic<PSI: PsiElement> : KtDiagnosticWithPsi<PSI> {
         override val diagnosticClass get() = OverridingFinalMember::class
         abstract val overriddenDeclaration: KtCallableSymbol
         abstract val containingClassName: Name
+    }
+
+    abstract class AbstractMemberNotImplemented : KtFirDiagnostic<KtClassOrObject>() {
+        override val diagnosticClass get() = AbstractMemberNotImplemented::class
+        abstract val classOrObject: KtClassLikeSymbol
+        abstract val missingDeclaration: KtCallableSymbol
+    }
+
+    abstract class AbstractClassMemberNotImplemented : KtFirDiagnostic<KtClassOrObject>() {
+        override val diagnosticClass get() = AbstractClassMemberNotImplemented::class
+        abstract val classOrObject: KtClassLikeSymbol
+        abstract val missingDeclaration: KtCallableSymbol
+    }
+
+    abstract class ManyImplMemberNotImplemented : KtFirDiagnostic<KtClassOrObject>() {
+        override val diagnosticClass get() = ManyImplMemberNotImplemented::class
+        abstract val classOrObject: KtClassLikeSymbol
+        abstract val missingDeclaration: KtCallableSymbol
+    }
+
+    abstract class ManyInterfacesMemberNotImplemented : KtFirDiagnostic<KtClassOrObject>() {
+        override val diagnosticClass get() = ManyInterfacesMemberNotImplemented::class
+        abstract val classOrObject: KtClassLikeSymbol
+        abstract val missingDeclaration: KtCallableSymbol
     }
 
     abstract class ReturnTypeMismatchOnOverride : KtFirDiagnostic<KtNamedDeclaration>() {
