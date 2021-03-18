@@ -23,7 +23,8 @@ class ResultClassInReturnTypeChecker : DeclarationChecker {
             languageVersionSettings.getFlag(AnalysisFlags.allowResultReturnType) ||
             (languageVersionSettings.getFeatureSupport(LanguageFeature.InlineClasses) == LanguageFeature.State.ENABLED ||
                     languageVersionSettings.supportsFeature(LanguageFeature.JvmInlineValueClasses)) &&
-            languageVersionSettings.supportsFeature(LanguageFeature.AllowResultInReturnType)
+            languageVersionSettings.supportsFeature(LanguageFeature.AllowResultInReturnType) ||
+            languageVersionSettings.supportsFeature(LanguageFeature.AllowNullOperatorsForResultAndResultReturnTypeByDefault)
         ) return
 
         if (declaration !is KtCallableDeclaration || descriptor !is CallableMemberDescriptor) return
