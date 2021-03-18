@@ -2171,6 +2171,12 @@ public class IrTextTestGenerated extends AbstractIrTextTest {
         }
 
         @Test
+        @TestMetadata("ImplementsCharSequence.kt")
+        public void testImplementsCharSequence() throws Exception {
+            runTest("compiler/testData/ir/irText/firProblems/ImplementsCharSequence.kt");
+        }
+
+        @Test
         @TestMetadata("ImplicitReceiverStack.kt")
         public void testImplicitReceiverStack() throws Exception {
             runTest("compiler/testData/ir/irText/firProblems/ImplicitReceiverStack.kt");

@@ -1,0 +1,8 @@
+class T : C {
+  constructor() /* primary */ {
+    super/*C*/()
+    /* <init>() */
+
+  }
+
+}
