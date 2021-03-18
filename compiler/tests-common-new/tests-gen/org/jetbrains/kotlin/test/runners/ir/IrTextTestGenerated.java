@@ -2165,6 +2165,12 @@ public class IrTextTestGenerated extends AbstractIrTextTest {
         }
 
         @Test
+        @TestMetadata("HashTable.kt")
+        public void testHashTable() throws Exception {
+            runTest("compiler/testData/ir/irText/firProblems/HashTable.kt");
+        }
+
+        @Test
         @TestMetadata("ImplicitReceiverStack.kt")
         public void testImplicitReceiverStack() throws Exception {
             runTest("compiler/testData/ir/irText/firProblems/ImplicitReceiverStack.kt");
