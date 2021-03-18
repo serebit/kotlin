@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.gradle.internal
 
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
@@ -27,7 +29,10 @@ import java.net.URL
 import java.net.URLClassLoader
 import javax.inject.Inject
 
-abstract class KaptWithoutKotlincTask @Inject constructor(private val workerExecutor: WorkerExecutor) : KaptTask() {
+abstract class KaptWithoutKotlincTask @Inject constructor(
+    objectFactory: ObjectFactory,
+    private val workerExecutor: WorkerExecutor
+) : KaptTask(objectFactory) {
     @get:InputFiles
     @get:Classpath
     @Suppress("unused")
@@ -102,12 +107,12 @@ abstract class KaptWithoutKotlincTask @Inject constructor(private val workerExec
 
             changedFiles,
             compiledSources,
-            incAptCache,
+            incAptCache.asFile.get(),
             classpathChanges.toList(),
 
             destinationDir,
             classesDir,
-            stubsDir,
+            stubsDir.asFile.get(),
 
             kaptClasspath.files.toList(),
             annotationProcessorFqNames,
@@ -289,7 +294,7 @@ internal data class KaptOptionsForWorker(
 
     val changedFiles: List<File>,
     val compiledSources: List<File>,
-    val incAptCache: File?,
+    val incAptCache: File,
     val classpathChanges: List<String>,
 
     val sourcesOutputDir: File,
