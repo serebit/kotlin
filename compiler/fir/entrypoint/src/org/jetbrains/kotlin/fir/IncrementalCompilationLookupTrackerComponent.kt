@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.incremental.components.Position
 import org.jetbrains.kotlin.incremental.components.ScopeKind
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.SmartList
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -160,5 +161,35 @@ class DebugIncrementalCompilationLookupTrackerComponent(
                 )
             }
         }
+    }
+}
+
+class IncrementalPassThroughCompilationLookupTrackerComponent(
+    private val lookupTracker: LookupTracker,
+    private val sourceToFilePath: (FirSourceElement) -> String
+) : FirLookupTrackerComponent() {
+
+    private val sourceToFilePathsCache = ConcurrentHashMap<FirSourceElement, String>()
+
+    override fun recordLookup(name: Name, inScopes: List<String>, source: FirSourceElement?, fileSource: FirSourceElement?) {
+        val definedSource = fileSource ?: source ?: throw AssertionError("Cannot record lookup for \"$name\" without a source")
+        val path = sourceToFilePathsCache.getOrPut(definedSource) {
+            sourceToFilePath(definedSource)
+        }
+        for (scope in inScopes) {
+            lookupTracker.record(
+                path, Position.NO_POSITION,
+                scope, ScopeKind.PACKAGE,
+                name.asString()
+            )
+        }
+    }
+
+    override fun recordLookup(name: Name, inScope: String, source: FirSourceElement?, fileSource: FirSourceElement?) {
+        recordLookup(name, SmartList(inScope), source, fileSource)
+    }
+
+    override fun flushLookups() {
+        sourceToFilePathsCache.clear()
     }
 }
