@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.declarations.FirImport
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.fir.declarations.builder.buildResolvedImport
-import org.jetbrains.kotlin.fir.firLookupTracker
+import org.jetbrains.kotlin.fir.lookupTracker
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.symbolProvider
@@ -64,7 +64,7 @@ open class FirImportResolveTransformer protected constructor(
 
         val parentFqName = fqName.parent()
         currentFile?.let {
-            session.firLookupTracker?.recordLookup(fqName.shortName(), import.source, it.source, parentFqName.asString())
+            session.lookupTracker?.recordLookup(fqName.shortName(), import.source, it.source, parentFqName.asString())
         }
         return transformImportForFqName(parentFqName, import)
     }

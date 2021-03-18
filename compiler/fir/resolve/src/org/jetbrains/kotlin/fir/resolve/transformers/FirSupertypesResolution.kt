@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.fir.expressions.FirStatement
 import org.jetbrains.kotlin.fir.extensions.extensionService
 import org.jetbrains.kotlin.fir.extensions.predicateBasedProvider
 import org.jetbrains.kotlin.fir.extensions.supertypeGenerators
-import org.jetbrains.kotlin.fir.firLookupTracker
+import org.jetbrains.kotlin.fir.lookupTracker
 import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.dfa.cfg.isLocalClassOrAnonymousObject
@@ -287,7 +287,7 @@ private class FirSupertypeResolverVisitor(
     ): List<FirTypeRef> {
         return resolveSpecificClassLikeSupertypes(classLikeDeclaration) { transformer, scope ->
             if (!classLikeDeclaration.isLocalClassOrAnonymousObject()) {
-                session.firLookupTracker?.let {
+                session.lookupTracker?.let {
                     val fileSource = session.firProvider.getFirClassifierContainerFile(classLikeDeclaration.symbol).source
                     for (supertypeRef in supertypeRefs) {
                         it.recordLookup(supertypeRef, fileSource, scope.scopeLookupNames)

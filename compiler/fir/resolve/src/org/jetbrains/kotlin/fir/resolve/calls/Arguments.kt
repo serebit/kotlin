@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.fir.resolve.calls
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.expressions.*
-import org.jetbrains.kotlin.fir.firLookupTracker
+import org.jetbrains.kotlin.fir.lookupTracker
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.inference.*
@@ -432,8 +432,8 @@ private fun Candidate.prepareExpectedType(
     val expectedType =
         getExpectedTypeWithSAMConversion(session, scopeSession, argument, basicExpectedType, context)?.also {
             parameter.returnTypeRef.coneType.lowerBoundIfFlexible().classId?.takeIf { !it.isLocal }?.let {
-                session.firLookupTracker?.recordLookup(SAM_LOOKUP_NAME, callInfo.callSite.source, callInfo.containingFile.source, it.asString())
-                session.firLookupTracker?.recordLookup(it.shortClassName, callInfo.callSite.source, callInfo.containingFile.source, it.packageFqName.asString())
+                session.lookupTracker?.recordLookup(SAM_LOOKUP_NAME, callInfo.callSite.source, callInfo.containingFile.source, it.asString())
+                session.lookupTracker?.recordLookup(it.shortClassName, callInfo.callSite.source, callInfo.containingFile.source, it.packageFqName.asString())
             }
         } ?: basicExpectedType
     return this.substitutor.substituteOrSelf(expectedType)

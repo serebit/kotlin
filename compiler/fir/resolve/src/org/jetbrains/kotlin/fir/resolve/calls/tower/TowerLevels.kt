@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.fir.declarations.FirConstructor
 import org.jetbrains.kotlin.fir.declarations.isInner
 import org.jetbrains.kotlin.fir.dispatchReceiverClassOrNull
 import org.jetbrains.kotlin.fir.expressions.builder.buildResolvedQualifier
-import org.jetbrains.kotlin.fir.firLookupTracker
+import org.jetbrains.kotlin.fir.lookupTracker
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.calls.*
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.resultType
@@ -136,13 +136,13 @@ class MemberScopeTowerLevel(
             return ProcessResult.FOUND
         }
         return processMembers(processor) { consumer ->
-            session.firLookupTracker?.recordLookup(info, dispatchReceiverValue.type)
+            session.lookupTracker?.recordLookup(info, dispatchReceiverValue.type)
             val lookupScopes = SmartList<String>()
             this.processFunctionsAndConstructorsByName(
                 info.name, session, bodyResolveComponents,
                 includeInnerConstructors = true,
                 processor = {
-                    session.firLookupTracker?.run {
+                    session.lookupTracker?.run {
                         recordTypeResolve(it.fir.returnTypeRef, info.callSite.source, info.containingFile.source)
                         it.callableId.className?.let { lookupScope ->
                             lookupScopes.add(lookupScope.asString())
@@ -153,7 +153,7 @@ class MemberScopeTowerLevel(
                     consumer(it as FirFunctionSymbol<*>)
                 }
             )
-            session.firLookupTracker?.recordLookup(info, lookupScopes.toTypedArray())
+            session.lookupTracker?.recordLookup(info, lookupScopes)
         }
     }
 
@@ -162,9 +162,9 @@ class MemberScopeTowerLevel(
         processor: TowerScopeLevelProcessor<FirVariableSymbol<*>>
     ): ProcessResult {
         return processMembers(processor) { consumer ->
-            session.firLookupTracker?.recordLookup(info, dispatchReceiverValue.type)
+            session.lookupTracker?.recordLookup(info, dispatchReceiverValue.type)
             this.processPropertiesByName(info.name) {
-                session.firLookupTracker?.recordTypeResolve(it.fir.returnTypeRef, info.callSite.source, info.containingFile.source)
+                session.lookupTracker?.recordTypeResolve(it.fir.returnTypeRef, info.callSite.source, info.containingFile.source)
                 // WARNING, DO NOT CAST FUNCTIONAL TYPE ITSELF
                 @Suppress("UNCHECKED_CAST")
                 consumer(it)
@@ -281,7 +281,7 @@ class ScopeTowerLevel(
         processor: TowerScopeLevelProcessor<FirFunctionSymbol<*>>
     ): ProcessResult {
         var empty = true
-        session.firLookupTracker?.recordLookup(info, scope.scopeLookupNames)
+        session.lookupTracker?.recordLookup(info, scope.scopeLookupNames)
         scope.processFunctionsAndConstructorsByName(
             info.name,
             session,
@@ -299,7 +299,7 @@ class ScopeTowerLevel(
         processor: TowerScopeLevelProcessor<FirVariableSymbol<*>>
     ): ProcessResult {
         var empty = true
-        session.firLookupTracker?.recordLookup(info, scope.scopeLookupNames)
+        session.lookupTracker?.recordLookup(info, scope.scopeLookupNames)
         scope.processPropertiesByName(info.name) { candidate ->
             empty = false
             consumeCallableCandidate(candidate, processor)
@@ -312,7 +312,7 @@ class ScopeTowerLevel(
         processor: TowerScopeLevelProcessor<AbstractFirBasedSymbol<*>>
     ): ProcessResult {
         var empty = true
-        session.firLookupTracker?.recordLookup(info, scope.scopeLookupNames)
+        session.lookupTracker?.recordLookup(info, scope.scopeLookupNames)
         scope.processClassifiersByName(info.name) {
             empty = false
             processor.consumeCandidate(

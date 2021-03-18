@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.utils.SmartList
 
 class FirPackageMemberScope(val fqName: FqName, val session: FirSession) : FirScope() {
     private val symbolProvider = session.symbolProvider
@@ -60,5 +61,5 @@ class FirPackageMemberScope(val fqName: FqName, val session: FirSession) : FirSc
         }
     }
 
-    override val scopeLookupNames: Array<String> = arrayOf(fqName.asString())
+    override val scopeLookupNames: List<String> = SmartList(fqName.asString())
 }

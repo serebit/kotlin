@@ -81,6 +81,6 @@ class FirScopeWithFakeOverrideTypeCalculator(
         }
     }
 
-    override val scopeLookupNames: Array<String>
+    override val scopeLookupNames: List<String>
         get() = delegate.scopeLookupNames
 }

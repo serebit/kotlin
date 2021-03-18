@@ -19,6 +19,6 @@ class FirOnlyCallablesScope(val delegate: FirScope) : FirScope() {
         return delegate.processPropertiesByName(name, processor)
     }
 
-    override val scopeLookupNames: Array<String>
+    override val scopeLookupNames: List<String>
         get() = delegate.scopeLookupNames
 }

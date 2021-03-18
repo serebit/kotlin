@@ -35,7 +35,7 @@ abstract class FirScope {
 
     open fun mayContainName(name: Name) = true
 
-    open val scopeLookupNames: Array<String> get() = emptyArray()
+    open val scopeLookupNames: List<String> get() = emptyList()
 }
 
 fun FirScope.getSingleClassifier(name: Name): FirClassifierSymbol<*>? = mutableListOf<FirClassifierSymbol<*>>().apply {

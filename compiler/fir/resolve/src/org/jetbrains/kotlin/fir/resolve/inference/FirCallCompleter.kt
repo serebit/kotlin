@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirResolvable
 import org.jetbrains.kotlin.fir.expressions.FirStatement
 import org.jetbrains.kotlin.fir.fakeElement
-import org.jetbrains.kotlin.fir.firLookupTracker
+import org.jetbrains.kotlin.fir.lookupTracker
 import org.jetbrains.kotlin.fir.resolve.ResolutionMode
 import org.jetbrains.kotlin.fir.resolve.calls.Candidate
 import org.jetbrains.kotlin.fir.resolve.calls.FirNamedReferenceWithCandidate
@@ -65,7 +65,7 @@ class FirCallCompleter(
         if (call is FirExpression) {
             val resolvedTypeRef = typeRef.resolvedTypeFromPrototype(initialType)
             call.resultType = resolvedTypeRef
-            session.firLookupTracker?.recordTypeResolve(resolvedTypeRef, call.source, null)
+            session.lookupTracker?.recordTypeResolve(resolvedTypeRef, call.source, null)
         }
 
         if (expectedTypeRef is FirResolvedTypeRef) {
@@ -214,13 +214,13 @@ class FirCallCompleter(
             lambdaArgument.valueParameters.forEachIndexed { index, parameter ->
                 val newReturnTypeRef = parameter.returnTypeRef.resolvedTypeFromPrototype(parameters[index].approximateLambdaInputType())
                 parameter.replaceReturnTypeRef(newReturnTypeRef)
-                session.firLookupTracker?.recordTypeResolve(newReturnTypeRef, parameter.source, null)
+                session.lookupTracker?.recordTypeResolve(newReturnTypeRef, parameter.source, null)
             }
 
             lambdaArgument.replaceValueParameters(lambdaArgument.valueParameters + listOfNotNull(itParam))
             lambdaArgument.replaceReturnTypeRef(
                 expectedReturnTypeRef?.also {
-                    session.firLookupTracker?.recordTypeResolve(it, lambdaArgument.source, null)
+                    session.lookupTracker?.recordTypeResolve(it, lambdaArgument.source, null)
                 } ?: components.noExpectedType
             )
 

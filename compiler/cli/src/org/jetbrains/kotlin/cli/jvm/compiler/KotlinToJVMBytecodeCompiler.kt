@@ -58,7 +58,7 @@ import org.jetbrains.kotlin.fir.backend.jvm.FirJvmBackendClassResolver
 import org.jetbrains.kotlin.fir.backend.jvm.FirJvmBackendExtension
 import org.jetbrains.kotlin.fir.checkers.registerExtendedCommonCheckers
 import org.jetbrains.kotlin.fir.createSessionWithDependencies
-import org.jetbrains.kotlin.fir.firLookupTracker
+import org.jetbrains.kotlin.fir.lookupTracker
 import org.jetbrains.kotlin.ir.backend.jvm.jvmResolveLibraries
 import org.jetbrains.kotlin.javac.JavacWrapper
 import org.jetbrains.kotlin.load.kotlin.ModuleVisibilityManager
@@ -363,13 +363,13 @@ object KotlinToJVMBytecodeCompiler {
             performanceManager?.notifyAnalysisFinished()
 
             // TODO: maybe we should not do it in presence of errors, but tests at the moment expect lookups to be reported
-            session.firLookupTracker?.flushLookups()
+            session.lookupTracker?.flushLookups()
 
             if (syntaxErrors || firDiagnostics.any { it.severity == Severity.ERROR }) {
                 return false
             }
 
-            session.firLookupTracker?.flushLookups()
+            session.lookupTracker?.flushLookups()
 
             performanceManager?.notifyGenerationStarted()
 

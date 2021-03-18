@@ -5,40 +5,35 @@
 
 package org.jetbrains.kotlin.fir
 
-import org.jetbrains.kotlin.fir.declarations.FirRegularClass
-import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
-import org.jetbrains.kotlin.fir.declarations.FirTypeAlias
-import org.jetbrains.kotlin.fir.declarations.FirVariable
 import org.jetbrains.kotlin.fir.resolve.calls.CallInfo
 import org.jetbrains.kotlin.fir.scopes.FirScope
-import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.utils.SmartList
 
 abstract class FirLookupTrackerComponent : FirSessionComponent {
 
-    abstract fun recordLookup(name: Name, source: FirSourceElement?, fileSource: FirSourceElement?, inScopes: Array<String>)
+    abstract fun recordLookup(name: Name, source: FirSourceElement?, fileSource: FirSourceElement?, inScopes: List<String>)
 
     fun recordLookup(name: Name, source: FirSourceElement?, fileSource: FirSourceElement?, inScope: String) {
-        recordLookup(name, source, fileSource, arrayOf(inScope))
+        recordLookup(name, source, fileSource, SmartList(inScope))
     }
 
     fun recordLookup(callInfo: CallInfo, type: ConeKotlinType) {
         if (type.classId?.isLocal == true) return
-        recordLookup(callInfo.name, callInfo.callSite.source, callInfo.containingFile.source, type.render().replace('/', '.'))
+        val scopes = SmartList(type.render().replace('/', '.'))
         if (type.classId?.shortClassName?.asString() == "Companion") {
-            recordLookup(callInfo.name, callInfo.callSite.source, callInfo.containingFile.source, type.classId!!.outerClassId!!.asString().replace('/', '.'))
+            scopes.add(type.classId!!.outerClassId!!.asString().replace('/', '.'))
         }
-    }
-
-    fun recordLookup(callInfo: CallInfo, scopes: Array<String>) {
         recordLookup(callInfo.name, callInfo.callSite.source, callInfo.containingFile.source, scopes)
     }
 
-    fun recordLookup(typeRef: FirTypeRef, fileSource: FirSourceElement?, scopes: Array<String>) {
-        when (typeRef) {
-            is FirUserTypeRef -> recordLookup(typeRef.qualifier.first().name, typeRef.source, fileSource, scopes)
-        }
+    fun recordLookup(callInfo: CallInfo, scopes: List<String>) {
+        recordLookup(callInfo.name, callInfo.callSite.source, callInfo.containingFile.source, scopes)
+    }
+
+    fun recordLookup(typeRef: FirTypeRef, fileSource: FirSourceElement?, scopes: List<String>) {
+        if (typeRef is FirUserTypeRef) recordLookup(typeRef.qualifier.first().name, typeRef.source, fileSource, scopes)
     }
 
     fun recordTypeResolve(typeRef: FirTypeRef, source: FirSourceElement?, fileSource: FirSourceElement?) {
@@ -64,19 +59,6 @@ abstract class FirLookupTrackerComponent : FirSessionComponent {
         recordIfValid(typeRef.type)
     }
 
-    fun recordLookup(symbol: FirBasedSymbol<*>, source: FirSourceElement?, fileSource: FirSourceElement?, scopes: Array<String>) {
-        val name = when (val fir = symbol.fir) {
-            is FirSimpleFunction -> fir.name
-            is FirVariable<*> -> fir.name
-            is FirRegularClass -> fir.name
-            is FirTypeAlias -> fir.name
-            else -> null
-        }
-        if (name != null) {
-            recordLookup(name, source, fileSource, scopes)
-        }
-    }
-
     abstract fun flushLookups()
 }
 
@@ -89,4 +71,4 @@ val Iterable<FirScope>.scopeLookupNames: Array<String>
         return scopesLookupNames.toTypedArray()
     }
 
-val FirSession.firLookupTracker: FirLookupTrackerComponent? by FirSession.nullableSessionComponentAccessor()
+val FirSession.lookupTracker: FirLookupTrackerComponent? by FirSession.nullableSessionComponentAccessor()

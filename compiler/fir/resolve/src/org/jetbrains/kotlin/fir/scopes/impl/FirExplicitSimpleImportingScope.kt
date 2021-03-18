@@ -20,7 +20,7 @@ class FirExplicitSimpleImportingScope(
             .filter { !it.isAllUnder && it.importedName != null }
             .groupBy { it.aliasName ?: it.importedName!! }
 
-    override val scopeLookupNames: Array<String> by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        simpleImports.values.flatMapTo(LinkedHashSet()) { it.map { it.packageFqName.asString() } }.toTypedArray()
+    override val scopeLookupNames: List<String> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        simpleImports.values.flatMapTo(LinkedHashSet()) { it.map { it.packageFqName.asString() } }.toList()
     }
 }

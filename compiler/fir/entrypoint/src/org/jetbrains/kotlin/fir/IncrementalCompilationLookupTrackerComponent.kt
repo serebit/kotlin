@@ -21,7 +21,7 @@ class IncrementalCompilationLookupTrackerComponent(
 
     private class Lookup(
         val name: Name,
-        val scopeFqNames: Array<String>
+        val scopeFqNames: List<String>
     ) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -30,14 +30,14 @@ class IncrementalCompilationLookupTrackerComponent(
             other as Lookup
 
             if (name != other.name) return false
-            if (!scopeFqNames.contentEquals(other.scopeFqNames)) return false
+            if (scopeFqNames != other.scopeFqNames) return false
 
             return true
         }
 
         override fun hashCode(): Int {
             var result = name.hashCode()
-            result = 31 * result + scopeFqNames.contentHashCode()
+            result = 31 * result + scopeFqNames.hashCode()
             return result
         }
     }
@@ -45,7 +45,7 @@ class IncrementalCompilationLookupTrackerComponent(
     private val lock = ReentrantLock()
     private var lookupsToTypes = MultiMap.createSet<FirSourceElement, Lookup>()
 
-    override fun recordLookup(name: Name, source: FirSourceElement?, fileSource: FirSourceElement?, inScopes: Array<String>) {
+    override fun recordLookup(name: Name, source: FirSourceElement?, fileSource: FirSourceElement?, inScopes: List<String>) {
         if (inScopes.isEmpty()) return
         val definedSource = fileSource ?: source ?: throw AssertionError("Cannot record lookup for \"$name\" without a source")
         val lookup = Lookup(name, inScopes)
@@ -82,7 +82,7 @@ class DebugIncrementalCompilationLookupTrackerComponent(
 
     private class Lookup(
         val name: Name,
-        val scopeFqNames: Array<String>,
+        val scopeFqNames: List<String>,
         val from: FirSourceElement?,
         val fromFile: FirSourceElement?
     ) {
@@ -93,7 +93,7 @@ class DebugIncrementalCompilationLookupTrackerComponent(
             other as Lookup
 
             if (name != other.name) return false
-            if (!scopeFqNames.contentEquals(other.scopeFqNames)) return false
+            if (scopeFqNames != other.scopeFqNames) return false
             if (from != other.from) return false
             if (fromFile != other.fromFile) return false
 
@@ -102,7 +102,7 @@ class DebugIncrementalCompilationLookupTrackerComponent(
 
         override fun hashCode(): Int {
             var result = name.hashCode()
-            result = 31 * result + scopeFqNames.contentHashCode()
+            result = 31 * result + scopeFqNames.hashCode()
             result = 31 * result + (from?.hashCode() ?: 0)
             result = 31 * result + (fromFile?.hashCode() ?: 0)
             return result
@@ -112,7 +112,7 @@ class DebugIncrementalCompilationLookupTrackerComponent(
     private val lock = ReentrantLock()
     private var lookups = ArrayList<Lookup>()
 
-    override fun recordLookup(name: Name, source: FirSourceElement?, fileSource: FirSourceElement?, inScopes: Array<String>) {
+    override fun recordLookup(name: Name, source: FirSourceElement?, fileSource: FirSourceElement?, inScopes: List<String>) {
         if (inScopes.isEmpty()) return
         if (fileSource == null && source == null) throw AssertionError("Cannot record lookup for \"$name\" without a source")
         val lookup = Lookup(name, inScopes, source, fileSource)

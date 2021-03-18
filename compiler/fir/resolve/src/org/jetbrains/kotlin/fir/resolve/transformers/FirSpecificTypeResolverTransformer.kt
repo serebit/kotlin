@@ -56,7 +56,7 @@ class FirSpecificTypeResolverTransformer(
 
     @OptIn(PrivateForInline::class)
     override fun transformTypeRef(typeRef: FirTypeRef, data: FirScope): CompositeTransformResult<FirResolvedTypeRef> {
-        session.firLookupTracker?.recordLookup(typeRef, currentFile?.source, data.scopeLookupNames)
+        session.lookupTracker?.recordLookup(typeRef, currentFile?.source, data.scopeLookupNames)
         typeRef.transformChildren(this, data)
         return transformType(typeRef, typeResolver.resolveType(typeRef, data, areBareTypesAllowed))
     }
@@ -67,7 +67,7 @@ class FirSpecificTypeResolverTransformer(
         data: FirScope
     ): CompositeTransformResult<FirResolvedTypeRef> {
         functionTypeRef.transformChildren(this, data)
-        session.firLookupTracker?.recordLookup(functionTypeRef, currentFile?.source, data.scopeLookupNames)
+        session.lookupTracker?.recordLookup(functionTypeRef, currentFile?.source, data.scopeLookupNames)
         val resolvedType = typeResolver.resolveType(functionTypeRef, data, areBareTypesAllowed).takeIfAcceptable()
         return if (resolvedType != null && resolvedType !is ConeClassErrorType) {
             buildResolvedTypeRef {
