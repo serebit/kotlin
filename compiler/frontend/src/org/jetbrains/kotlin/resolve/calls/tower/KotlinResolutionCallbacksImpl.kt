@@ -162,13 +162,17 @@ class KotlinResolutionCallbacksImpl(
             if (stubsForPostponedVariables.isNotEmpty()) {
                 require(topLevelCallContext != null) { "Top level call context should not be null to analyze coroutine-lambda" }
 
-                CoroutineInferenceSession(
+                val session = CoroutineInferenceSession(
                     psiCallResolver, postponedArgumentsAnalyzer, kotlinConstraintSystemCompleter,
                     callComponents, builtIns, topLevelCallContext, stubsForPostponedVariables, trace,
                     kotlinToResolvedCallTransformer, expressionTypingServices, argumentTypeResolver,
                     doubleColonExpressionResolver, deprecationResolver, moduleDescriptor, typeApproximator,
                     missingSupertypesResolver
                 )
+                if (topLevelCallContext.inferenceSession is CoroutineInferenceSession) {
+                    topLevelCallContext.inferenceSession.childCoroutineInferenceSession = session
+                }
+                session
             } else {
                 null
             }

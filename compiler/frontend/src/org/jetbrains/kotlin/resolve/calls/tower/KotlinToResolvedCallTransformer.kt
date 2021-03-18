@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.resolve.calls.components.AdditionalDiagnosticReporte
 import org.jetbrains.kotlin.resolve.calls.components.isVararg
 import org.jetbrains.kotlin.resolve.calls.context.BasicCallResolutionContext
 import org.jetbrains.kotlin.resolve.calls.context.CallPosition
+import org.jetbrains.kotlin.resolve.calls.inference.CoroutineInferenceSession
 import org.jetbrains.kotlin.resolve.calls.inference.buildResultingSubstitutor
 import org.jetbrains.kotlin.resolve.calls.inference.components.FreshVariableNewTypeSubstitutor
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutor
@@ -179,7 +180,16 @@ class KotlinToResolvedCallTransformer(
         tracingStrategy: TracingStrategy,
     ) {
         if (baseResolvedCall is CompletedCallResolutionResult) {
-            context.inferenceSession.addCompletedCallInfo(PSICompletedCallInfo(baseResolvedCall, context, resolvedCall, tracingStrategy))
+            val inferenceSession = context.inferenceSession
+            inferenceSession.addCompletedCallInfo(PSICompletedCallInfo(baseResolvedCall, context, resolvedCall, tracingStrategy))
+            var parentInferenceSession: CoroutineInferenceSession? = inferenceSession as? CoroutineInferenceSession
+
+            do {
+                parentInferenceSession = parentInferenceSession?.getParentSession()
+                if (parentInferenceSession != null) {
+                    parentInferenceSession.addCompletedCallInfo(PSICompletedCallInfo(baseResolvedCall, context, resolvedCall, tracingStrategy))
+                }
+            } while (parentInferenceSession != null)
         }
     }
 

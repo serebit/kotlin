@@ -105,6 +105,8 @@ class CoroutineInferenceSession(
         }
     }
 
+    var childCoroutineInferenceSession: CoroutineInferenceSession? = null
+
     fun addSimpleCall(callExpression: KtExpression) {
         simpleCommonCalls.add(callExpression)
     }
@@ -140,6 +142,8 @@ class CoroutineInferenceSession(
     }
 
     fun hasInapplicableCall(): Boolean = hasInapplicableCall
+
+    fun getParentSession() = topLevelCallContext.inferenceSession as? CoroutineInferenceSession
 
     override fun writeOnlyStubs(callInfo: SingleCallResolutionResult): Boolean {
         return !skipCall(callInfo)
@@ -205,14 +209,17 @@ class CoroutineInferenceSession(
 
     override fun shouldCompleteResolvedSubAtomsOf(resolvedCallAtom: ResolvedCallAtom) = true
 
-    private fun createNonFixedTypeToVariableSubstitutor(): NewTypeSubstitutorByConstructorMap {
+    private fun createNonFixedTypeToVariableMap(): Map<TypeConstructor, UnwrappedType> {
         val bindings = hashMapOf<TypeConstructor, UnwrappedType>()
-        for ((variable, nonFixedType) in stubsForPostponedVariables) {
+
+        for ((variable, nonFixedType) in stubsForPostponedVariables) { // do it for nested sessions
             bindings[nonFixedType.constructor] = variable.defaultType
         }
 
-        return NewTypeSubstitutorByConstructorMap(bindings)
+        return bindings
     }
+
+    private fun createNonFixedTypeToVariableSubstitutor() = NewTypeSubstitutorByConstructorMap(createNonFixedTypeToVariableMap())
 
     private fun integrateConstraints(
         commonSystem: NewConstraintSystemImpl,
@@ -266,6 +273,8 @@ class CoroutineInferenceSession(
         return introducedConstraint
     }
 
+    // just go to parent, and substitute types there
+
     private fun buildCommonSystem(initialStorage: ConstraintStorage): Pair<NewConstraintSystemImpl, Boolean> {
         val commonSystem = NewConstraintSystemImpl(callComponents.constraintInjector, builtIns)
 
@@ -305,7 +314,7 @@ class CoroutineInferenceSession(
         val nonFixedTypesToResult = nonFixedToVariablesSubstitutor.map.mapValues { substitutor.safeSubstitute(it.value) }
         val nonFixedTypesToResultSubstitutor = ComposedSubstitutor(substitutor, nonFixedToVariablesSubstitutor)
 
-        val atomCompleter = createResolvedAtomCompleter(nonFixedTypesToResultSubstitutor, topLevelCallContext)
+        val atomCompleter = createResolvedAtomCompleter(nonFixedTypesToResultSubstitutor, topLevelCallContext.replaceInferenceSession(this))
 
         for (completedCall in commonCalls) {
             updateCall(completedCall, nonFixedTypesToResultSubstitutor, nonFixedTypesToResult)
@@ -319,7 +328,7 @@ class CoroutineInferenceSession(
 
         for (simpleCall in simpleCommonCalls) {
             when (simpleCall) {
-                is KtCallableReferenceExpression -> updateCallableReferenceType(simpleCall, nonFixedTypesToResultSubstitutor)
+                is KtCallableReferenceExpression -> completeCallableReference(simpleCall, nonFixedTypesToResultSubstitutor)
                 else -> throw Exception("Unsupported call expression type")
             }
         }
@@ -340,32 +349,20 @@ class CoroutineInferenceSession(
 
         val atomCompleter = createResolvedAtomCompleter(
             resultingSubstitutor,
-            completedCall.context.replaceBindingTrace(topLevelCallContext.trace)
+            completedCall.context.replaceBindingTrace(topLevelCallContext.trace).replaceInferenceSession(this)
         )
 
         completeCall(completedCall, atomCompleter)
     }
 
-    private fun updateCallableReferenceType(expression: KtCallableReferenceExpression, substitutor: NewTypeSubstitutor) {
-        val functionDescriptor = trace.get(BindingContext.DECLARATION_TO_DESCRIPTOR, expression) as? SimpleFunctionDescriptorImpl ?: return
-        val returnType = functionDescriptor.returnType
-
-        fun KotlinType.substituteAndApproximate() = typeApproximator.approximateDeclarationType(
-            substitutor.safeSubstitute(this.unwrap()),
-            local = true,
-            languageVersionSettings = topLevelCallContext.languageVersionSettings
+    @OptIn(ExperimentalStdlibApi::class)
+    private fun completeCallableReference(expression: KtCallableReferenceExpression, substitutor: NewTypeSubstitutor) {
+        val atomCompleter = createResolvedAtomCompleter(substitutor, topLevelCallContext.replaceInferenceSession(this))
+        atomCompleter.substituteFunctionLiteralDescriptor(
+            resolvedAtom = null,
+            descriptor = trace.get(BindingContext.DECLARATION_TO_DESCRIPTOR, expression) as? SimpleFunctionDescriptorImpl ?: return,
+            substitutor
         )
-
-        if (returnType != null && returnType.contains { it is StubType }) {
-            functionDescriptor.setReturnType(returnType.substituteAndApproximate())
-        }
-
-        for (valueParameter in functionDescriptor.valueParameters) {
-            if (valueParameter !is ValueParameterDescriptorImpl || valueParameter.type !is StubType)
-                continue
-
-            valueParameter.setOutType(valueParameter.type.substituteAndApproximate())
-        }
     }
 
     private fun completeCall(

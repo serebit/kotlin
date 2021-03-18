@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.builtins.createFunctionType
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.FunctionDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
+import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.diagnostics.reportDiagnosticOnce
@@ -212,52 +213,82 @@ class ResolvedAtomCompleter(
             return commonReturnType.isUnit()
         }
 
-    private fun completeLambda(lambda: ResolvedLambdaAtom) {
+
+    fun substituteFunctionLiteralDescriptor(
+        resolvedAtom: ResolvedLambdaAtom?, // null is for callable references resolved though the old type inference
+        descriptor: SimpleFunctionDescriptorImpl,
+        substitutor: NewTypeSubstitutor
+    ): FunctionLiteralTypes {
+        val returnType = descriptor.returnType ?: if (resolvedAtom?.isCoercedToUnit == true) builtIns.unitType else resolvedAtom?.returnType
+        val receiverType = descriptor.extensionReceiverParameter?.returnType ?: resolvedAtom?.receiver
+        val valueParameterTypes = descriptor.valueParameters.map { it.type }
+
+        require(returnType != null)
+
+        fun KotlinType.substituteAndApproximate() =
+            typeApproximator.approximateDeclarationType(
+                substitutor.safeSubstitute(this.unwrap()),
+                local = true,
+                languageVersionSettings = topLevelCallContext.languageVersionSettings
+            )
+
+        val approximatedReturnType = returnType.substituteAndApproximate().also { descriptor.setReturnType(it) }
+
+        val approximatedReceiverType = if (receiverType != null && receiverType.shouldBeSubstituted()) {
+            receiverType.substituteAndApproximate().also { descriptor.setReturnType(it) }
+        } else receiverType
+
+        val approximatedValueParameterTypes = descriptor.valueParameters.mapIndexed { i, valueParameter ->
+            if (valueParameter is ValueParameterDescriptorImpl && valueParameter.type.shouldBeSubstituted()) {
+                valueParameterTypes[i].substituteAndApproximate().also { valueParameter.setOutType(it) }
+            } else valueParameter.type
+        }
+
+        return FunctionLiteralTypes(approximatedReturnType, approximatedValueParameterTypes, approximatedReceiverType)
+    }
+
+    private fun completeLambda(resolvedAtom: ResolvedLambdaAtom) {
         @Suppress("NAME_SHADOWING")
-        val lambda = lambda.unwrap()
-        val resultArgumentsInfo = lambda.resultArgumentsInfo!!
-        val returnType = if (lambda.isCoercedToUnit) {
-            builtIns.unitType
-        } else {
-            resultSubstitutor.safeSubstitute(lambda.returnType)
-        }
-        val receiverType = lambda.receiver
-
-        val approximatedValueParameterTypes = lambda.parameters.map { parameterType ->
-            if (parameterType.shouldBeSubstituted()) {
-                typeApproximator.approximateDeclarationType(
-                    resultSubstitutor.safeSubstitute(parameterType),
-                    local = true,
-                    languageVersionSettings = topLevelCallContext.languageVersionSettings
-                )
-            } else parameterType
+        val resolvedAtom = resolvedAtom.unwrap()
+        val psiCallArgument = resolvedAtom.atom.psiCallArgument
+        val (ktArgumentExpression, ktFunction) = when (psiCallArgument) {
+            is LambdaKotlinCallArgumentImpl -> psiCallArgument.ktLambdaExpression to psiCallArgument.ktLambdaExpression.functionLiteral
+            is FunctionExpressionImpl -> psiCallArgument.ktFunction to psiCallArgument.ktFunction
+            else -> throw AssertionError("Unexpected psiCallArgument for resolved lambda argument: $psiCallArgument")
         }
 
-        val approximatedReturnType =
-            typeApproximator.approximateDeclarationType(
-                returnType,
-                local = true,
-                languageVersionSettings = topLevelCallContext.languageVersionSettings
-            )
+        val descriptor = topLevelTrace.bindingContext.get(BindingContext.FUNCTION, ktFunction) as? SimpleFunctionDescriptorImpl
+            ?: throw AssertionError("No function descriptor for resolved lambda argument")
 
-        val approximatedReceiverType = if (receiverType != null) {
-            typeApproximator.approximateDeclarationType(
-                resultSubstitutor.safeSubstitute(receiverType),
-                local = true,
-                languageVersionSettings = topLevelCallContext.languageVersionSettings
-            )
-        } else null
+        val substitutedFunctionLiteralTypes = substituteFunctionLiteralDescriptor(resolvedAtom, descriptor, resultSubstitutor)
+        val resultArgumentsInfo = resolvedAtom.resultArgumentsInfo!!
 
-        updateTraceForLambda(lambda, topLevelTrace, approximatedReturnType, approximatedValueParameterTypes, approximatedReceiverType)
+        val existingLambdaType = topLevelTrace.getType(ktArgumentExpression)
+
+        if (existingLambdaType == null) {
+            if (ktFunction is KtNamedFunction && ktFunction.nameIdentifier != null) return // it's a statement
+            throw AssertionError("No type for resolved lambda argument: ${ktArgumentExpression.text}")
+        }
+
+        val substitutedFunctionalType = createFunctionType(
+            builtIns,
+            existingLambdaType.annotations,
+            substitutedFunctionLiteralTypes.receiverType,
+            substitutedFunctionLiteralTypes.parameterTypes,
+            null, // parameter names transforms to special annotations, so they are already taken from parameter types
+            substitutedFunctionLiteralTypes.returnType,
+            resolvedAtom.isSuspend
+        )
+
+        topLevelTrace.recordType(ktArgumentExpression, substitutedFunctionalType)
 
         for (lambdaResult in resultArgumentsInfo.nonErrorArguments) {
             val resultValueArgument = lambdaResult as? PSIKotlinCallArgument ?: continue
-            val newContext =
-                topLevelCallContext.replaceDataFlowInfo(resultValueArgument.dataFlowInfoAfterThisArgument)
-                    .replaceExpectedType(approximatedReturnType)
-                    .replaceBindingTrace(topLevelTrace)
-
+            val newContext = topLevelCallContext.replaceDataFlowInfo(resultValueArgument.dataFlowInfoAfterThisArgument)
+                .replaceExpectedType(substitutedFunctionLiteralTypes.returnType)
+                .replaceBindingTrace(topLevelTrace)
             val argumentExpression = resultValueArgument.valueArgument.getArgumentExpression() ?: continue
+
             kotlinToResolvedCallTransformer.updateRecordedType(
                 argumentExpression,
                 parameter = null,
@@ -266,64 +297,6 @@ class ResolvedAtomCompleter(
                 convertedArgumentType = null
             )
         }
-    }
-
-    private fun updateTraceForLambda(
-        lambda: ResolvedLambdaAtom,
-        trace: BindingTrace,
-        returnType: UnwrappedType,
-        valueParameters: List<UnwrappedType>,
-        receiverType: UnwrappedType?
-    ) {
-        val psiCallArgument = lambda.atom.psiCallArgument
-
-        val ktArgumentExpression: KtExpression
-        val ktFunction: KtElement
-        when (psiCallArgument) {
-            is LambdaKotlinCallArgumentImpl -> {
-                ktArgumentExpression = psiCallArgument.ktLambdaExpression
-                ktFunction = ktArgumentExpression.functionLiteral
-            }
-            is FunctionExpressionImpl -> {
-                ktArgumentExpression = psiCallArgument.ktFunction
-                ktFunction = ktArgumentExpression
-            }
-            else -> throw AssertionError("Unexpected psiCallArgument for resolved lambda argument: $psiCallArgument")
-        }
-
-        val functionDescriptor = trace.bindingContext.get(BindingContext.FUNCTION, ktFunction) as? FunctionDescriptorImpl
-            ?: throw AssertionError("No function descriptor for resolved lambda argument")
-
-        functionDescriptor.setReturnType(returnType)
-
-        val extensionReceiverParameter = functionDescriptor.extensionReceiverParameter
-
-        if (receiverType != null && extensionReceiverParameter is ReceiverParameterDescriptorImpl && extensionReceiverParameter.type.shouldBeSubstituted()) {
-            extensionReceiverParameter.setOutType(receiverType)
-        }
-
-        for ((i, valueParameter) in functionDescriptor.valueParameters.withIndex()) {
-            if (valueParameter !is ValueParameterDescriptorImpl || !valueParameter.type.shouldBeSubstituted()) continue
-            valueParameter.setOutType(valueParameters[i])
-        }
-
-        val existingLambdaType = trace.getType(ktArgumentExpression)
-        if (existingLambdaType == null) {
-            if (ktFunction is KtNamedFunction && ktFunction.nameIdentifier != null) return // it's a statement
-
-            throw AssertionError("No type for resolved lambda argument: ${ktArgumentExpression.text}")
-        }
-        val substitutedFunctionalType = createFunctionType(
-            builtIns,
-            existingLambdaType.annotations,
-            lambda.receiver?.let { resultSubstitutor.safeSubstitute(it) },
-            lambda.parameters.map { resultSubstitutor.safeSubstitute(it) },
-            null, // parameter names transforms to special annotations, so they are already taken from parameter types
-            returnType,
-            lambda.isSuspend
-        )
-
-        trace.recordType(ktArgumentExpression, substitutedFunctionalType)
     }
 
     private fun NewTypeSubstitutor.toOldSubstitution(): TypeSubstitution = object : TypeSubstitution() {
@@ -567,3 +540,5 @@ class ResolvedAtomCompleter(
         expressionTypingServices.getTypeInfo(psiCallArgument.collectionLiteralExpression, actualContext)
     }
 }
+
+class FunctionLiteralTypes(val returnType: KotlinType, val parameterTypes: List<KotlinType>, val receiverType: KotlinType?)
