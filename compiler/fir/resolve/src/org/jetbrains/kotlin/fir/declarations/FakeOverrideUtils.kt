@@ -25,11 +25,19 @@ sealed class FirFakeOverrideStub(val baseSymbols: List<FirCallableSymbol<*>>) {
     ) : FirFakeOverrideStub(baseSymbols) {
         override val unwrappedSymbol: FirCallableSymbol<*>
             get() = symbol.unwrapSubstitutionAndIntersectionOverrides()
+
+        override fun toString(): String {
+            return "Scope F/O stub ${symbol.callableId}"
+        }
     }
 
     class Trivial(baseSymbol: FirCallableSymbol<*>) : FirFakeOverrideStub(listOf(baseSymbol)) {
         override val unwrappedSymbol: FirCallableSymbol<*>
             get() = baseSymbol.unwrapSubstitutionAndIntersectionOverrides()
+
+        override fun toString(): String {
+            return "Trivial F/O stub ${baseSymbol.callableId}"
+        }
     }
 
     val baseSymbol get() = baseSymbols.single()
