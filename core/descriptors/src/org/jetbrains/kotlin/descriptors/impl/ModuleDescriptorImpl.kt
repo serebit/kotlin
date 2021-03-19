@@ -63,8 +63,14 @@ class ModuleDescriptorImpl @JvmOverloads constructor(
         }
     }
 
-    private val packages = storageManager.createMemoizedFunction<FqName, PackageViewDescriptor> { fqName: FqName ->
-        LazyPackageViewDescriptorImpl(this, fqName, storageManager)
+    private fun packages(fqName: FqName): PackageViewDescriptor {
+        return LazyPackageViewDescriptorImpl(this, fqName, storageManager)
+    }
+
+    private var memoizedPackages = storageManager.createMemoizedFunction(::packages)
+
+    fun clearPackageCaches() {
+        memoizedPackages = storageManager.createMemoizedFunction(::packages)
     }
 
     @Deprecated("This method is not going to be supported. Please do not use it")
@@ -82,7 +88,7 @@ class ModuleDescriptorImpl @JvmOverloads constructor(
 
     override fun getPackage(fqName: FqName): PackageViewDescriptor {
         assertValid()
-        return packages(fqName)
+        return memoizedPackages(fqName)
     }
 
     override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> {
