@@ -65,19 +65,36 @@ class FirClassSubstitutionScope(
         return useSiteMemberScope.processDirectOverriddenCallablesWithBaseScope(original, processor)
     }
 
+    private inline fun <T : FirCallableSymbol<*>> MutableMap<T, T>.getOrPutIfNotImplicit(original: T, createSubstitution: () -> T): T {
+        this[original]?.let { return it }
+        val substitution = createSubstitution()
+        // We should not store substitutions with implicit type ref if they match original,
+        // because later (after type recalculation) this symbol MAY need substitution
+        if (substitution !== original || substitution.fir.returnTypeRef !is FirImplicitTypeRef) {
+            this[original] = substitution
+        }
+        return substitution
+    }
+
     override fun processPropertiesByName(name: Name, processor: (FirVariableSymbol<*>) -> Unit) {
         return useSiteMemberScope.processPropertiesByName(name) process@{ original ->
             when (original) {
                 is FirPropertySymbol -> {
-                    val property = substitutionOverrideVariables.getOrPut(original) { createSubstitutionOverrideProperty(original) }
+                    val property = substitutionOverrideVariables.getOrPutIfNotImplicit(original) {
+                        createSubstitutionOverrideProperty(original)
+                    }
                     processor(property)
                 }
                 is FirFieldSymbol -> {
-                    val field = substitutionOverrideVariables.getOrPut(original) { createSubstitutionOverrideField(original) }
+                    val field = substitutionOverrideVariables.getOrPutIfNotImplicit(original) {
+                        createSubstitutionOverrideField(original)
+                    }
                     processor(field)
                 }
                 is FirAccessorSymbol -> {
-                    val accessor = substitutionOverrideVariables.getOrPut(original) { createSubstitutionOverrideAccessor(original) }
+                    val accessor = substitutionOverrideVariables.getOrPutIfNotImplicit(original) {
+                        createSubstitutionOverrideAccessor(original)
+                    }
                     processor(accessor)
                 }
                 else -> {
